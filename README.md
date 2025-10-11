@@ -1,50 +1,90 @@
-# Welcome to your Expo app 👋
+# Cómo generar un apk
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Algunas consideraciones para generar el apk:
 
-## Get started
+* Se debe crear un directorio solo con la carpeta de frontend (sin el node modules para que no se demore tanto y luego se usa `npm install` dentro del frontend nomás) 
+* **Los comandos se deben ejecturar en una terminal dentro de la carpeta frontend creada** , pues **eas** espera que el archivo "package.json" esté en la raíz.
+* Es necesario tener una cuenta en la plataforma de expo: https://expo.dev/go
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+### Pasos:
 
-2. Start the app
+* Instalar eas build con `npm install -g eas-cli`
+* Agregar esto al apartado "android" en app.config.js:
 
-   ```bash
-   npx expo start
-   ```
+```
+  android: {
 
-In the output, you'll find options to open the app in a
+    adaptiveIcon: {
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+      foregroundImage: "./assets/images/CEAppLogo.png",
+       backgroundColor: "#ffffff"
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+    },
+     edgeToEdgeEnabled: true,
+     
+     permissions: \[
+        "READ\_EXTERNAL\_STORAGE",
+        "WRITE\_EXTERNAL\_STORAGE",
+        "READ\_MEDIA\_IMAGES",
+        "READ\_MEDIA\_VIDEO",
+        "READ\_MEDIA\_AUDIO"
+      ],
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+      package:  <nombre arbitrario>  <-- Generalmente es algo como "com.<nombre_usuario>.<nombre-app>"
+   }
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
+### Configuracion de variables
+* borrar `import "dotenv/config";` en app.config.js
 
-## Learn more
+* En la consola, agregar variables definidas en .env con los siguientes comandos:
+```
+  eas secret:create --name API\_BASE\_URL --value http://<tu\_ip>:8000
+```
+```
+  eas secret:create --name WS\_BASE\_URL --value ws://<tu\_ip>:8000/ws
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+* Posiblemente salga <span style="color: red;"> Error </span> y solicite agregar mas cosas al app.config.js (seguir instrucciones de la consola):
+```
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "<lo entrega la consola>"
+      }
+    }
+  }
+}
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+* Correr nuevamente los comandos para agregar las variables
+* Seleccionar "Yes" para configurar el proyecto y "String" para secret type
 
-## Join the community
+---
+### Configuraciones para hacer el build
 
-Join our community of developers creating universal apps.
+* Instalar expo dev client `npx expo install expo-dev-client`
+* Ingresar cuenta de expo con `eas login`
+* Ejecutar `eas build:configure`
+* Si te lo pide: agregar projectId en app.config.js según lo indicado en la consola y ejecutar nuevamente `eas build:configure`
+* Seleccionar "All" para las plataformas deseadas 
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+### Realizar el build
+
+* Ejecutar (para Android) `eas build --profile development --platform android`
+* Luego aparecerá en la consola un QR para descargar la aplicación
+* Instalar el apk y abrir desde el celular
+* Ejecutar expo como siempre `npx expo start`
+* Escanear el código QR de la consola desde la app.
+* Listo! debería funcionar igual que como funciona con Expo Go de aquí en adelante (espero)
+
+
+
+
+
+
