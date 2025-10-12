@@ -1,8 +1,9 @@
 import { Titulo } from "@/components/base/Titulo";
+import { useAuth } from "@/context/auth";
 import * as FileSystem from "expo-file-system/legacy";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import Pdf from "react-native-pdf";
 
 interface Props {
@@ -83,8 +84,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   pdf: {
     flex: 1,
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
+    width: "100%",
+    height: "100%",
   },
   loaderContainer: {
     flex: 1,
@@ -96,18 +97,42 @@ const styles = StyleSheet.create({
 
 export function VisualizadorPDF(){
 
+  const {authToken, refreshToken, createApi, setAuthToken} = useAuth();
   const params = useLocalSearchParams();
   const id = params.id;
-  //Con esta id, deberíamos hacer un fetch hacia el backend
-  //para saber la uri real del informe
+  const ruta = decodeURIComponent(usePathname());
+  if (!ruta) return null;
+  const ruta_partes = ruta.split("/").filter(Boolean);
+  const rol = ruta_partes[0];
+  const paciente = ruta_partes[1];
+  const [pacienteID] = paciente.split("-");
 
-  const uri = 'https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf';
+  const [url, setUrl] = useState<string | null>(null);
+
+  const fetchInforme = async () => {
+  try {
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      const res = await api.get(`/informes/${pacienteID}/${id}`);
+      setUrl(res.data.url);
+  } catch (error: any) {
+      console.error("Error:", error.response?.data?.message || error.message);
+      Alert.alert("Error", "No se pudo obtener el informe. Intenta nuevamente.");
+    }
+  };
+  
+  useEffect(() => {
+      fetchInforme();
+  }, [authToken, refreshToken]);
 
   return (
+    <>
+     {url &&
       <PdfViewer
-        source={{ uri: uri }}
+        source={{ uri: url }}
         style={{ flex: 1 }}
       />
+     }
+    </>
   );
 
 }

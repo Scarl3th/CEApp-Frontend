@@ -92,12 +92,15 @@ const InformeItem = ({ informe, onChange, setToast }: InformeItemProps) => {
     
     setIsDescargando(true);
     console.log("[informes] Descargando informe...");
-
-    //AQUI DEBERIAMOS RECIBIR LA URI DEL INFORME DE ALGUNA FORMA
-    const url = 'https://pdfobject.com/pdf/sample.pdf';
-    const fileName = `${informe.titulo}.pdf`;
     
     try {
+
+      //Preguntamos por la url al backend
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      const res = await api.get(`/informes/${pacienteID}/${informe.id}`);
+      console.log(res.data);
+      const url = res.data.url;
+      const fileName = `${informe.titulo}.pdf`;
 
       // Ruta en caché
       const destination = new FileSystem.Directory(FileSystem.Paths.cache,"informes");
@@ -125,7 +128,7 @@ const InformeItem = ({ informe, onChange, setToast }: InformeItemProps) => {
               Alert.alert("Archivo descargado correctamente");
             })
       //setToast({ text1: "Informe descargado correctamente", type: "success" });
-      
+      //Saqué el toast porque se veía detrás del modal, el alert se sobrepone y queda mejor
 
     } catch (error) {
       console.error(error);
@@ -236,6 +239,8 @@ export function Informes() {
       const api = createApi(authToken, refreshToken, setAuthToken);
       console.log("[informes] Obteniendo informes de la base de datos...");
       const res = await api.get("/informes/" + pacienteID + "/metadata/");
+      //console.log(res.data);
+      setInformes(res.data);
       setError(false);
     } catch(err) {
       console.log("[informes] Error:", err);
