@@ -73,12 +73,21 @@ export function TarjetaExpandible({
         )}
       </Pressable>
       {expandido && expandidoContenido && (
-        <View
-          className="p-4"
-          style={{ backgroundColor: colors.lightgrey }}
-        >
-          {expandidoContenido}
-        </View>
+        <>
+          <View
+            style={{
+              height: 1,
+              backgroundColor: colors.mediumgrey,
+              opacity: 0.4,
+            }}
+          />
+          <View
+            className="p-4"
+            style={{ backgroundColor: colors.lightgrey }}
+          >
+            {expandidoContenido}
+          </View>
+        </>
       )}
     </View>
   );
@@ -253,7 +262,14 @@ export function TarjetaTresPuntos({
         {({ pressed }) => (
           <View
             className={"rounded-lg flex-row items-center"}
-            style={{ backgroundColor: onPress && pressed ? colors.mediumlightgrey : tarjetaColor }}
+            style={{
+              backgroundColor: onPress && pressed ? colors.mediumlightgrey : tarjetaColor,
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
           >
             {icono && (
               <View

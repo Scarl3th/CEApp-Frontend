@@ -95,7 +95,7 @@ export function InicioPaciente() {
           {!error ? (
             <View className="flex-row flex-wrap justify-between">
               <TarjetaInicio
-                onPress={() => router.replace(`/${rol}/${paciente}/plan/progreso`)}
+                onPress={() => router.replace(`/${rol}/${paciente}/plan/progreso?progresion=1`)}
                 titulo={"Progreso"}
                 subtitulo={[`${porcentajePromedio}%`]}
                 icono={Icons["progreso"].iconName}
@@ -107,7 +107,7 @@ export function InicioPaciente() {
                 }
               />
               <TarjetaInicio
-                onPress={() => router.replace(`/${rol}/${paciente}/plan/progreso`)}
+                onPress={() => router.replace(`/${rol}/${paciente}/plan/progreso?tiempo=1`)}
                 titulo={"Tiempo dedicado"}
                 subtitulo={[`${formatearTiempo(tiempoTotalDedicado)}`]}
                 icono={Icons["tiempo"].iconName}

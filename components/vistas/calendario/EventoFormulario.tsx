@@ -414,7 +414,8 @@ export function EventoFormulario() {
                   value={diaMensual ? diaMensual.toString() : ""}
                   onChangeText={(text) => setDiaMensual(Number(text))}
                   keyboardType={"numeric"}
-                  asterisco
+                  maxLength={2}
+                  asterisco={true}
                   tipo={2}
                 />
               )}
@@ -431,7 +432,7 @@ export function EventoFormulario() {
                 hora={hora_inicio}
                 setHora={setHora_inicio}
                 placeholder={"Ingresa una hora"}
-                asterisco
+                asterisco={true}
                 tipo={2}
               />
               <FormularioCampoHora

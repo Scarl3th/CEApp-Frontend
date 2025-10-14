@@ -52,9 +52,7 @@ interface OG {
 export function Progreso() {
 
   const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
-  const parametros = useLocalSearchParams();
-  const router = useRouter();
-  const paciente = parametros.paciente;
+  const { paciente, tiempo, progresion } = useLocalSearchParams();
   const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
   const [pacienteID] = pacienteString?.split("-") ?? [null, null];
 
@@ -70,7 +68,7 @@ export function Progreso() {
 
   //ESTADOS
   const [inicializado, setInicializado] = useState(false);
-  const [pestana, setPestana] = useState<"progresion" | "tiempo">("progresion");
+  const [pestana, setPestana] = useState<"progresion" | "tiempo">(tiempo ? "tiempo" : "progresion");
   const [OG, setOG] = useState<OG[]>([]);
   const [OGSelected, setOGSelected] = useState<string[]>([]);
   const [error, setError] = useState(false);
@@ -121,7 +119,6 @@ export function Progreso() {
           fecha: new Date(p.fecha),
         })),
       }));
-      console.log(JSON.stringify(OGFechas, null, 2)); //DEBUG
       setOG(OGFechas);
       setError(false);
     } catch (err) {
@@ -136,15 +133,11 @@ export function Progreso() {
   let endDate: Date = new Date();
   if (timeUnit === "month") {
     startDate.setMonth(startDate.getMonth() - timePeriods); //Restar N meses
-  } else { // year
+  } else {
     startDate.setFullYear(startDate.getFullYear() - timePeriods); //Restar N años
   }
   endDate.setHours(23, 59, 59, 999);
   startDate.setHours(0, 0, 0, 0);
-  //console.log("[progreso]...");
-  //console.log("[progreso] Start date:", startDate);
-  //console.log("[progreso] End date:", endDate);
-  //console.log("[progreso]...");
 
   //FILTRO
   const OGFiltroSelected =
@@ -154,13 +147,10 @@ export function Progreso() {
   const OGFiltroTiempo = OGFiltroSelected.reduce((acum, o) => acum + o.tiempo, 0);
   const OGFiltroProgresion = OGFiltroSelected.map(obj => {
     const progresion = obj.progresion;
-    // Encuentra el primer punto antes del rango
-    const primerAntes = progresion.filter(p => p.fecha < startDate).slice(-1)[0];
-    // Encuentra el primer punto después del rango
-    const primerDespues = progresion.filter(p => p.fecha > endDate)[0];
-    // Filtra puntos dentro del rango
-    const dentro = progresion.filter(p => p.fecha >= startDate && p.fecha <= endDate);
-    // Construye nueva serie incluyendo los puntos de borde
+    const primerAntes = progresion.filter(p => p.fecha < startDate).slice(-1)[0]; //Encuentra el primer punto antes del rango
+    const primerDespues = progresion.filter(p => p.fecha > endDate)[0]; //Encuentra el primer punto después del rango
+    const dentro = progresion.filter(p => p.fecha >= startDate && p.fecha <= endDate); //Filtra puntos dentro del rango
+    //Construye nueva serie incluyendo los puntos de borde
     const nuevaSerie = [
       ...(primerAntes ? [primerAntes] : []),
       ...dentro,
@@ -171,17 +161,28 @@ export function Progreso() {
       progresion: nuevaSerie
     };
   }).filter(obj => obj.progresion.length > 0);
+  const OGFiltroSelectedPorcentaje =
+    OGFiltroSelected.length > 0
+      ? OGFiltroSelected.reduce((acc, og) => {
+          const ultimoPorcentaje =
+            og.progresion.length > 0
+              ? og.progresion[og.progresion.length - 1].porcentaje
+              : 0;
+          return acc + ultimoPorcentaje;
+        }, 0) / OGFiltroSelected.length
+      : 0;
 
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo 
-        subtitulo={"Progreso"}
+        subtitulo={"Visualización del progreso"}
         onPressRecargar={fetchOG}
       >
         Plan de trabajo
       </Titulo>
-
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ) : error ? (
@@ -191,13 +192,13 @@ export function Progreso() {
         />
       ) : OG.length === 0 ? (
         <MensajeVacio
-          mensaje={"Aún no tienes progreso.\n¡Comienza a planificar el trabajo del paciente en el plan de trabajo!"}
+          mensaje={"No se encontró progreso.\n¡Comienza a planificar el trabajo del paciente en el plan de trabajo!"}
         />
       ) : (
 
         <>
         
-          {/*----------PESTAÑAS----------*/}
+          {/* PESTAÑAS */}
           <View className="bg-lightgrey rounded-lg my-2 flex-row justify-around">
             <BotonTab
               label={"Progresión"}
@@ -214,13 +215,12 @@ export function Progreso() {
           <ScrollView className="flex-1 my-2 pb-20 gap-4">
             
             {pestana === "progresion" ? (
-
               <View className="bg-lightgrey gap-2 pt-2">
+                {/* SUBTÍTULO */}
                 <Text className="text-black text-lg font-bold text-center">
                   Progresión por objetivo general
                 </Text>
-
-                {/*----------FILTRO: PERÍODO----------*/}
+                {/* FILTRO: PERÍODO */}
                 <View className="gap-1 flex-row items-center justify-center">
                   {opcionesPredeterminadas.map((op) => (
                     <Pressable
@@ -255,33 +255,24 @@ export function Progreso() {
                     )}
                   </Pressable>
                 </View>
-
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
+                {/* GRÁFICO DE LÍNEAS */}
                 <View style={{ position: "relative" }}>
                   <Svg width={screenWidth - 16} height={280}>
                     {(() => {
                       const allFechas = OGFiltroProgresion.flatMap(o => o.progresion.map(p => p.fecha));
                       if (allFechas.length === 0) return null;
-
                       const xScale = d3.scaleTime()
                         .domain([startDate, endDate])
                         .range([40, screenWidth - 16 - 40]);
-
                       const yScale = d3.scaleLinear()
                         .domain([0, 100])
                         .range([240, 20]);
-
                       return (
                         <>
-                          {/* Ejes */}
+                          {/* EJES */}
                           <Line x1={40} y1={yScale(0)} x2={screenWidth - 16 - 30} y2={yScale(0)} stroke={colors.mediumgrey} strokeWidth={2} />
                           <Line x1={40} y1={yScale(0)} x2={40} y2={yScale(100)} stroke={colors.mediumgrey} strokeWidth={2} />
-
-                          {/* Fechas */}
+                          {/* FECHAS */}
                           <SvgText
                             x={xScale(startDate)}
                             y={yScale(0) + 20}
@@ -290,7 +281,6 @@ export function Progreso() {
                             textAnchor={"start"}>
                             {formatearFechaString(startDate, { day: "2-digit", month: "2-digit", year: "numeric" })}
                           </SvgText>
-
                           <SvgText
                             x={xScale(endDate) + 10}
                             y={yScale(0) + 20}
@@ -299,19 +289,16 @@ export function Progreso() {
                             textAnchor={"end"}>
                             {formatearFechaString(endDate, { day: "2-digit", month: "2-digit", year: "numeric" })}
                           </SvgText>
-
-                          {/* Líneas y círculos (solo visuales) */}
+                          {/* LÍNEAS Y CÍRCULOS */}
                           {OGFiltroProgresion.map(objetivo => {
                             const fechas = objetivo.progresion.map(p => p.fecha);
                             if (fechas.length === 0) return null;
-
                             const linePath = d3.line<[Date, number]>()
                               .x(d => xScale(d[0]))
                               .y(d => yScale(d[1]))
                               .curve(d3.curveMonotoneX)(
                                 objetivo.progresion.map(p => [p.fecha, p.porcentaje])
                               );
-
                             return (
                               <G key={objetivo.id}>
                                 <Path
@@ -321,7 +308,6 @@ export function Progreso() {
                                   fill="none"
                                   pointerEvents="none"
                                 />
-
                                 {objetivo.progresion
                                   .filter(p => p.fecha >= startDate && p.fecha <= endDate)
                                   .map((p, i) => (
@@ -333,14 +319,13 @@ export function Progreso() {
                                       fill={OGPressed?.id === objetivo.id && OGPressed?.index === i
                                         ? colors.lightmediumgrey
                                         : objetivo.color || colors.primary}
-                                      pointerEvents="none" // 👈 importante
+                                      pointerEvents="none"
                                     />
                                   ))}
                               </G>
                             );
                           })}
-
-                          {/* Labels eje Y */}
+                          {/* EJE Y: LABELS */}
                           {[0, 25, 50, 75, 100].map((v, idx) => (
                             <SvgText key={idx} x={8} y={yScale(v)} fontSize={10} fill="#333" textAnchor="start">
                               {v}%
@@ -350,20 +335,16 @@ export function Progreso() {
                       );
                     })()}
                   </Svg>
-
-                  {/* 👇 Pressables encima del SVG */}
+                  {/* PRESSABLES */}
                   {(() => {
                     const allFechas = OGFiltroProgresion.flatMap(o => o.progresion.map(p => p.fecha));
                     if (allFechas.length === 0) return null;
-
                     const xScale = d3.scaleTime()
                       .domain([startDate, endDate])
                       .range([40, screenWidth - 16 - 40]);
-
                     const yScale = d3.scaleLinear()
                       .domain([0, 100])
                       .range([240, 20]);
-
                     return OGFiltroProgresion.map(objetivo =>
                       objetivo.progresion
                         .filter(p => p.fecha >= startDate && p.fecha <= endDate)
@@ -389,7 +370,7 @@ export function Progreso() {
                                 width: 30,
                                 height: 30,
                                 borderRadius: 15,
-                                backgroundColor: "transparent", // o "rgba(255,0,0,0.2)" para probar
+                                backgroundColor: "transparent",
                               }}
                             />
                           );
@@ -397,25 +378,15 @@ export function Progreso() {
                     );
                   })()}
                 </View>
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
-                {/*--------------------GRÁFICO DE LÍNEAS--------------------*/}
               </View>
                 
             ) : pestana === "tiempo" ? (
-
               <View className="bg-lightgrey gap-2 pt-2">
+                {/* SUBTÍTULO */}
                 <Text className="text-black text-lg font-bold text-center">
                   Tiempo dedicado por objetivo general
                 </Text>
-
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
+                {/* GRÁFICO DE BARRAS */}
                 <View style={{ position: "relative" }}>
                   <ScrollView
                     ref={scrollRef}
@@ -439,36 +410,29 @@ export function Progreso() {
                       {(() => {
                         const data = OGFiltroSelected;
                         if (data.length === 0) return null;
-
                         const margin = { top: 20, right: 10, bottom: 40, left: 55 };
                         const width =
                           Math.max(OGFiltroSelected.length * 60, screenWidth - 16) -
                           margin.left -
                           margin.right;
                         const height = 280 - margin.top - margin.bottom;
-
                         const xScale = d3
                           .scaleBand()
                           .domain(data.map((o, i) => i.toString()))
                           .range([0, width])
                           .padding(0.1);
-
                         const yScale = d3
                           .scaleLinear()
                           .domain([0, d3.max(data, (d) => d.tiempo)!])
                           .nice()
                           .range([height, 0]);
-
                         const yTicks = yScale.ticks(5);
-
                         return (
                           <G transform={`translate(${margin.left}, ${margin.top})`}>
                             {/* EJE Y */}
                             <Line x1={0} y1={0} x2={0} y2={height} stroke={colors.mediumgrey} strokeWidth={2} />
-
                             {/* EJE X */}
                             <Line x1={0} y1={height} x2={width} y2={height} stroke={colors.mediumgrey} strokeWidth={2} />
-
                             {/* BARRAS VISUALES */}
                             {data.map((o, i) => (
                               <Rect
@@ -479,11 +443,10 @@ export function Progreso() {
                                 height={height - yScale(o.tiempo)}
                                 fill={OGPressed?.id === o.id ? colors.lightmediumgrey : o.color || colors.primary}
                                 rx={2}
-                                pointerEvents="none" // 👈 importante, para que Pressable reciba el toque
+                                pointerEvents="none"
                               />
                             ))}
-
-                            {/* Labels eje Y */}
+                            {/* EJE Y: LABELS */}
                             {yTicks.map((t, i) => (
                               <G key={i}>
                                 <SvgText
@@ -508,8 +471,7 @@ export function Progreso() {
                                 </SvgText>
                               </G>
                             ))}
-
-                            {/* Labels eje X */}
+                            {/* EJE X: LABELS */}
                             {data.map((o, i) => (
                               <SvgText
                                 key={i}
@@ -526,37 +488,31 @@ export function Progreso() {
                         );
                       })()}
                     </Svg>
-
-                    {/* 👇 Pressables encima del SVG */}
+                    {/* PRESSABLES */}
                     {(() => {
                       const data = OGFiltroSelected;
                       if (data.length === 0) return null;
-
                       const margin = { top: 20, right: 10, bottom: 40, left: 55 };
                       const width =
                         Math.max(OGFiltroSelected.length * 60, screenWidth - 16) -
                         margin.left -
                         margin.right;
                       const height = 280 - margin.top - margin.bottom;
-
                       const xScale = d3
                         .scaleBand()
                         .domain(data.map((o, i) => i.toString()))
                         .range([0, width])
                         .padding(0.1);
-
                       const yScale = d3
                         .scaleLinear()
                         .domain([0, d3.max(data, (d) => d.tiempo)!])
                         .nice()
                         .range([height, 0]);
-
                       return data.map((o, i) => {
                         const x = xScale(i.toString())! + margin.left;
                         const y = yScale(o.tiempo) + margin.top;
                         const barWidth = xScale.bandwidth();
                         const barHeight = height - yScale(o.tiempo);
-
                         return (
                           <Pressable
                             key={`pressable-${o.id}`}
@@ -581,13 +537,8 @@ export function Progreso() {
                     })()}
                   </ScrollView>
                 </View>
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
-                {/*--------------------GRÁFICO DE BARRAS--------------------*/}
 
-                {/*----------FLECHAS----------*/}
+                {/* FELCHAS */}
                 {scrollIzquierda && (
                   <View
                     className="rounded-full p-1"
@@ -634,7 +585,7 @@ export function Progreso() {
 
             ) : null}
 
-            {/* FILTRO */}
+            {/* FILTRO: OBJETIVOS GENERALES */}
             <View className="pt-2 gap-0.5">
               {OG.map((o) => {
                 const isSelected = OGSelected.includes(o.id);
@@ -673,6 +624,11 @@ export function Progreso() {
                             {formatearTiempo(o.tiempo)}
                           </Text>
                         )}
+                        {pestana === "progresion" && (
+                          <Text className="text-sm font-medium ml-3" style={{ color: colors.mediumgrey }}>
+                            {`${o.progresion.length > 0 ? o.progresion[o.progresion.length - 1].porcentaje : 0}%`}
+                          </Text>
+                        )}
                       </View>
                     )}
                   </Pressable>
@@ -683,10 +639,15 @@ export function Progreso() {
               <Text className="text-mediumgrey text-sm text-right pr-2">
                 Tiempo total dedicado: {formatearTiempo(OGFiltroTiempo)}
               </Text>
-            ) : null}
+            ) : (
+              <Text className="text-mediumgrey text-sm text-right pr-2">
+                Progresión promedio: {parseFloat(OGFiltroSelectedPorcentaje.toFixed(2))}%
+              </Text>
+            )}
 
           </ScrollView>
 
+          {/* MODAL: PERÍODO PERSONALIZADO */}
           <CustomModal
             tipo={"expandible"}
             visible={showModalPeriodo}
@@ -696,14 +657,12 @@ export function Progreso() {
               <Text className="text-primary text-xl font-bold">
                 Período personalizado
               </Text>
-              {/* Input: número de períodos */}
               <TextInput
                 value={timeText}
                 onChangeText={setTimeText}
                 keyboardType="numeric"
                 className="border border-gray-400 rounded p-2 flex-1 text-center"
               />
-              {/* Selector unidad de tiempo */}
               <View className="gap-2 flex-row items-center justify-center">
                 <Pressable
                   onPress={() => setTimeUnit("month")}
@@ -732,7 +691,6 @@ export function Progreso() {
                   )}
                 </Pressable>
               </View>
-              {/* Botón aplicar */}
               <Boton
                 texto={"Filtrar"}
                 onPress={() => {
@@ -748,7 +706,7 @@ export function Progreso() {
             </View>
           </CustomModal>
 
-          {/*----------MODAL----------*/}
+          {/* MODAL: DETALLE PROGRESIÓN */}
           <CustomModal
             tipo={"expandible"}
             visible={showModalOGProgresion}
@@ -797,7 +755,7 @@ export function Progreso() {
             )}
           </CustomModal>
 
-          {/*----------MODAL----------*/}
+          {/* MODAL: DETALLE TIEMPO DEDICADO */}
           <CustomModal
             tipo={"expandible"}
             visible={showModalOGTiempo}
@@ -818,11 +776,8 @@ export function Progreso() {
           </CustomModal>
 
         </>
-
       )}
-
     </View>
-
   );
 
 }

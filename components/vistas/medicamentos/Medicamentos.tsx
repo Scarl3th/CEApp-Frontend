@@ -320,9 +320,9 @@ export function Medicamentos() {
           ) : (
             <MensajeVacio
               mensaje={
-                `No se encontraron medicamentos para este día.\n${
-                  !isProfesional ? "¡Comienza a añadir medicamentos usando el botón ＋!" :
-                  null
+                `No se encontraron medicamentos para este día.${
+                  !isProfesional ? "\n¡Comienza a añadir medicamentos usando el botón ＋!" :
+                  ""
                 }`
                 }
             />
