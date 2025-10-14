@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/auth";
-import { useLocalSearchParams, useRouter, usePathname } from "expo-router";
-import { View, Text, Alert, FlatList } from "react-native";
-import { Titulo, TituloSeccion} from "@/components/base/Titulo";
-import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/constants/colors";
-import { BotonAccionIcon, BotonTab, BotonAgregar } from "@/components/base/Boton";
+import { BotonAccionIcon, BotonAgregar, BotonTab } from "@/components/base/Boton";
 import { formatearFechaString } from "@/components/base/FormatearFecha";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
+import { Titulo } from "@/components/base/Titulo";
+import { colors } from "@/constants/colors";
+import { useAuth } from "@/context/auth";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, FlatList, Text, View } from "react-native";
 
 
 const medicamentos = [
@@ -42,7 +42,9 @@ interface Medicamento {
   frecuencia: number;
   horarios: Date[];
   recordatorio: number;
-  color: string
+  color: string;
+  recordatorioActivo?: boolean;
+  paciente?: string;
 }
 
 //BADGE: MEDICAMENTOS

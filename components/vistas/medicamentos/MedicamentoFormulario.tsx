@@ -1,14 +1,34 @@
-import { Alert, View, Text, Switch } from "react-native";
-import React, { useEffect, useRef, useState } from "react"
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useAuth } from "@/context/auth";
 import { Boton } from "@/components/base/Boton";
-import { Titulo } from "@/components/base/Titulo";
+import { FormularioCampo, FormularioCampoHora, FormularioCampoMultiSelect, FormularioCampoSelect } from "@/components/base/Entrada";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
-import { DescartarCambiosContext } from "@/context/DescartarCambios";
-import { FormularioCampo, FormularioCampoSelect, FormularioCampoHora, FormularioCampoMultiSelect } from "@/components/base/Entrada";
+import { Titulo } from "@/components/base/Titulo";
 import { colors, colorsUser } from "@/constants/colors";
+import { useAuth } from "@/context/auth";
+import { DescartarCambiosContext } from "@/context/DescartarCambios";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, Switch, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { configurarNotificaciones, programarRecordatorios } from "./Notificaciones";
+
+
+async function sincronizarNotificaciones(api: any) {
+  try {
+    // Configuración de notificaciones
+    await configurarNotificaciones();
+
+    // Consulta para obtener los medicamentos de todos los planes de trabajo del usuario
+    console.log("[login notificaciones] Obteniendo medicamentos para notificaciones");
+    const res = await api.get("/medicamentos/");
+    console.log(res.data);
+
+    // Programar recordatorios en base a los medicamentos obtenidos
+    await programarRecordatorios(res.data);
+
+  } catch (error) {
+    console.error("Error al sincronizar medicamentos:", error);
+  }
+}
 
 export function MedicamentoFormulario() {
 
@@ -194,10 +214,12 @@ export function MedicamentoFormulario() {
         if (modoEdicion) {
           console.log("[editar-medicamento] Editando medicamento...");
           const res = await api.put(`/medicamentos/${pacienteID}/${id}/`, payload, { timeout: 5000 });
+          sincronizarNotificaciones(api);
           Alert.alert("Éxito", "Medicamento editado correctamente.", [{ text: "OK", onPress: () => router.push(`/cuidador/${paciente}/medicamentos?recargar=1`) }]);
         } else {
           console.log("[agregar-medicamento] Agregando medicamento...")
           const res = await api.post(`/medicamentos/${pacienteID}/`, payload, { timeout: 5000 });
+          sincronizarNotificaciones(api);
           Alert.alert("Éxito", "Medicamento creado correctamente.", [{ text: "OK", onPress: () => router.push(`/cuidador/${paciente}/medicamentos?recargar=1`) }]);
         }
       } catch (err) {

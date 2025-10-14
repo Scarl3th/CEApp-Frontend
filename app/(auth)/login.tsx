@@ -1,12 +1,13 @@
+import { Boton } from "@/components/base/Boton";
+import { FormularioCampo } from "@/components/base/Entrada";
+import { Titulo } from "@/components/base/Titulo";
+import { configurarNotificaciones } from "@/components/vistas/medicamentos/Notificaciones";
+import { useAuth } from "@/context/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { useRouter } from "expo-router";
-import { Alert, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth } from "@/context/auth";
-import { Boton } from "@/components/base/Boton";
-import { Titulo } from "@/components/base/Titulo";
-import { FormularioCampo } from "@/components/base/Entrada";
+import { Alert, Text, View } from "react-native";
 
 export default function Login() {
   
@@ -45,6 +46,8 @@ export default function Login() {
       router.replace("/"); //Redireccionar a index
       setCorreo('');
       setContrasena('');
+
+      await configurarNotificaciones()
     }
     //INICIO DE SESIÓN CON ERRORES
     catch (error: unknown) { 
