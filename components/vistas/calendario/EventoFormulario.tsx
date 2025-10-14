@@ -246,10 +246,16 @@ export function EventoFormulario() {
   const handleGuardar = async () => {
     // Validación: Campos obligatorios no ingresados
     if (!titulo || !hora_inicio || !color || !tipo || !fecha) {
+      console.log(titulo);
+      console.log(hora_inicio);
+      console.log(color);
+      console.log(tipo);
+      console.log(fecha);
       Alert.alert("Error", "Por favor, completa todos los campos marcados con *.");
         return;
     }
     else if(tipo === "semanal" && !diaSemana){
+      console.log(diaSemana);
       Alert.alert("Error", "Por favor, completa todos los campos marcados con *.");
         return;
     }
@@ -382,28 +388,18 @@ export function EventoFormulario() {
                 asterisco
                 tipo={2}
               />
-              {tipo === "unico" && (
-                <FormularioCampoFechaFutura
-                  label={"Fecha"}
-                  placeholder={"Selecciona una fecha"}
-                  fecha={fecha}
-                  setFecha={setFecha}
-                  asterisco={true}
-                  tipo={2}
-                />
-              )}
               {tipo === "semanal" && (
                 <FormularioCampoSelect
                   label={"Día de la semana"}
                   placeholder={"Selecciona un día"}
                   items={[
-                  { id: 0, titulo: "Domingo", color: colors.primary },
-                  { id: 1, titulo: "Lunes", color: colors.primary },
-                  { id: 2, titulo: "Martes", color: colors.primary },
-                  { id: 3, titulo: "Miércoles", color: colors.primary},
-                  { id: 4, titulo: "Jueves", color: colors.primary},
-                  { id: 5, titulo: "Viernes", color: colors.primary},
-                  { id: 6, titulo: "Sábado", color: colors.primary},
+                  { id: 0, titulo: "Domingo", color: colors.mediumdarkishgrey },
+                  { id: 1, titulo: "Lunes", color: colors.mediumdarkishgrey },
+                  { id: 2, titulo: "Martes", color: colors.mediumdarkishgrey },
+                  { id: 3, titulo: "Miércoles", color: colors.mediumdarkishgrey},
+                  { id: 4, titulo: "Jueves", color: colors.mediumdarkishgrey},
+                  { id: 5, titulo: "Viernes", color: colors.mediumdarkishgrey},
+                  { id: 6, titulo: "Sábado", color: colors.mediumdarkishgrey},
                   ]}
                   selectedId={diaSemana}
                   onChange={setDiaSemana}
@@ -422,6 +418,14 @@ export function EventoFormulario() {
                   tipo={2}
                 />
               )}
+              <FormularioCampoFechaFutura
+                label={`Fecha${tipo != "unico" ? " de inicio" : ""}`}
+                placeholder={`Selecciona una fecha${tipo != "unico" ? " de inicio" : ""}`}
+                fecha={fecha}
+                setFecha={setFecha}
+                asterisco={true}
+                tipo={2}
+              />
               <FormularioCampoHora
                 label={"Hora de inicio"}
                 hora={hora_inicio}

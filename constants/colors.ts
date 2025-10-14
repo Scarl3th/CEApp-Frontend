@@ -10,6 +10,7 @@ export const colors = {
   lightmediumgrey: "#DDDEDF",
   mediumlightgrey: "#C6C7C8",
   mediumgrey: "#999999",
+  mediumdarkishgrey: "#777777",
   mediumdarkgrey: "#555555",
   //GREEN
   lightgreen: "#D2F7CD",

@@ -516,11 +516,11 @@ export function FormularioCampoFecha({
             style={{
               backgroundColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.primary :
+                fecha ? colors.mediumdarkishgrey :
                 colors.white,
               borderColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.primary :
+                fecha ? colors.mediumdarkishgrey :
                 colors.mediumgrey,
             }}
           >
@@ -594,11 +594,11 @@ export function FormularioCampoFechaFutura({
             style={{
               backgroundColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.primary :
+                fecha ? colors.mediumdarkishgrey :
                 colors.white,
               borderColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.primary :
+                fecha ? colors.mediumdarkishgrey :
                 colors.mediumgrey,
             }}
           >
@@ -659,11 +659,11 @@ export function FormularioCampoHora({
             style={{
               backgroundColor:
                 pressed ? colors.mediumlightgrey :
-                hora ? colors.primary :
+                hora ? colors.mediumdarkishgrey :
                 colors.white,
               borderColor:
                 pressed ? colors.mediumlightgrey :
-                hora ? colors.primary :
+                hora ? colors.mediumdarkishgrey :
                 colors.mediumgrey,
             }}
           >
