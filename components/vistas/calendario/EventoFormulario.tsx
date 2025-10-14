@@ -254,7 +254,7 @@ export function EventoFormulario() {
       Alert.alert("Error", "Por favor, completa todos los campos marcados con *.");
         return;
     }
-    else if(tipo === "semanal" && !diaSemana){
+    else if(tipo === "semanal" && diaSemana === null){
       console.log(diaSemana);
       Alert.alert("Error", "Por favor, completa todos los campos marcados con *.");
         return;
@@ -269,7 +269,7 @@ export function EventoFormulario() {
     const ahora = new Date();
     //const ahoraLocal = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
     //console.log(Hora_inicioSeleccionada,ahora);
-    if(fecha){
+    if(fecha && tipo === "unico"){
       console.log(ahora.getUTCDate());
       console.log(fecha.getUTCDate());
       console.log(hora_inicio < ahora);

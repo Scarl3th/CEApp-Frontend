@@ -117,10 +117,10 @@ export function Calendario() {
     return eventos.filter((evento) => {
       const eventDay = parseISO(evento.fecha);
       eventDay.setHours(0, 0, 0, 0); // normalizamos también
-      if (evento.dia_semana) {
+      if (evento.tipo === "semanal") {
         return evento.dia_semana === dayOfWeek && dateObj >= eventDay;
       }
-      if (evento.dia_mensual) {
+      if (evento.tipo === "mensual") {
         return evento.dia_mensual === dayOfMonth && dateObj >= eventDay;
       }
       return evento.fecha === fecha;
@@ -129,28 +129,32 @@ export function Calendario() {
 
   // Marcar días con puntitos y día seleccionado
   const handleMonthChange = (month) => {
-    const year = month.year;
-    const monthIndex = month.month - 1;
-    const daysInMonth = new Date(year, month.month, 0).getDate();
 
+    const year = month.year;
+    const monthIndex = month.month;
+    const daysInMonth = new Date(year, month.month, 0).getDate();
     const newMarked = {};
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const dateObj = new Date(year, monthIndex, day);
+     
+      const dateObj = parseISO(year+"-"
+                              +(monthIndex>9? monthIndex: "0"+String(monthIndex))+"-"
+                              +(day>9? day: "0"+String(day)));
+      
       // normalizamos a medianoche
       dateObj.setHours(0, 0, 0, 0);
       const dateStr = dateObj.toISOString().split("T")[0];
       const dayOfWeek = getDay(dateObj);
       const dayOfMonth = dateObj.getDate();
       const eventosDelDia = eventos.filter((evento) => {
-        const eventDay = new Date(evento.fecha);
+        const eventDay = parseISO(evento.fecha);
         eventDay.setHours(0, 0, 0, 0); // normalizamos también
         // si es recurrente semanal
-        if (evento.dia_semana) {
+        if (evento.tipo === "semanal") {
           return evento.dia_semana === dayOfWeek && dateObj >= eventDay;
         }
         // si es recurrente mensual
-        if (evento.dia_mensual) {
+        if (evento.tipo === "mensual") {
           return evento.dia_mensual === dayOfMonth && dateObj >= eventDay;
         }
         // evento puntual
