@@ -1,7 +1,6 @@
-import { Alert, View } from "react-native";
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useAuth } from "@/context/auth";
 import { Boton } from "@/components/base/Boton";
 import { Titulo } from "@/components/base/Titulo";
@@ -10,18 +9,18 @@ import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { DescartarCambiosContext } from "@/context/DescartarCambios";
 import { FormularioCampo, FormularioCampoSelect } from "@/components/base/Entrada";
 
-const categoriasItems = [
-  { id: "Acompañamiento en transiciones (educativas y vitales)", titulo: 'Acompañamiento en transiciones (educativas y vitales)', color: colors.primary },
-  { id: "Acompañamiento familiar y psicoeducación", titulo: 'Acompañamiento familiar y psicoeducación', color: colors.primary },
-  { id: "Asesoría institucional y formación a equipos", titulo: 'Asesoría institucional y formación a equipos', color: colors.primary },
-  { id: "Conductual y adaptación al entorno", titulo: 'Conductual y adaptación al entorno', color: colors.primary },
-  { id: "Desarrollo cognitivo y neuropsicológico", titulo: 'Desarrollo cognitivo y neuropsicológico', color: colors.primary },
-  { id: "Inclusión educativa y adaptaciones curriculares", titulo: 'Inclusión educativa y adaptaciones curriculares', color: colors.primary },
-  { id: "Lenguaje, comunicación y habla", titulo: 'Lenguaje, comunicación y habla', color: colors.primary },
-  { id: "Motricidad y coordinación", titulo: 'Motricidad y coordinación', color: colors.primary },
-  { id: "Salud física y bienestar médico (complementario)", titulo: 'Salud física y bienestar médico (complementario)', color: colors.primary },
-  { id: "Sensopercepción e integración sensorial", titulo: 'Sensopercepción e integración sensorial', color: colors.primary },
-  { id: "Socialización, habilidades sociales y tiempo libre", titulo: 'Socialización, habilidades sociales y tiempo libre', color: colors.primary },
+const categorias = [
+  { id: "Acompañamiento en transiciones (educativas y vitales)", titulo: "Acompañamiento en transiciones (educativas y vitales)", color: colors.primary },
+  { id: "Acompañamiento familiar y psicoeducación", titulo: "Acompañamiento familiar y psicoeducación", color: colors.primary },
+  { id: "Asesoría institucional y formación a equipos", titulo: "Asesoría institucional y formación a equipos", color: colors.primary },
+  { id: "Conductual y adaptación al entorno", titulo: "Conductual y adaptación al entorno", color: colors.primary },
+  { id: "Desarrollo cognitivo y neuropsicológico", titulo: "Desarrollo cognitivo y neuropsicológico", color: colors.primary },
+  { id: "Inclusión educativa y adaptaciones curriculares", titulo: "Inclusión educativa y adaptaciones curriculares", color: colors.primary },
+  { id: "Lenguaje, comunicación y habla", titulo: "Lenguaje, comunicación y habla", color: colors.primary },
+  { id: "Motricidad y coordinación", titulo: "Motricidad y coordinación", color: colors.primary },
+  { id: "Salud física y bienestar médico (complementario)", titulo: "Salud física y bienestar médico (complementario)", color: colors.primary },
+  { id: "Sensopercepción e integración sensorial", titulo: "Sensopercepción e integración sensorial", color: colors.primary },
+  { id: "Socialización, habilidades sociales y tiempo libre", titulo: "Socialización, habilidades sociales y tiempo libre", color: colors.primary },
 ];
 
 export function ObjetivoGeneralFormulario() {
@@ -41,14 +40,17 @@ export function ObjetivoGeneralFormulario() {
     
   //ESTADOS
   const [objetivoGeneral, setObjetivoGeneral] = useState(null);
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+  const [titulo, setTitulo] = useState("");
+  const [descripcion, setDescripcion] = useState("");
   const [categoria, setCategoria] = useState(null);
-  const [color, setColor] = useState('');
+  const [color, setColor] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingBoton, setIsLoadingBoton] = useState(false);
-
-  const datosIniciales = useRef({ titulo: '', descripcion: '', categoria: null });
+  const datosIniciales = useRef({
+    titulo: "",
+    descripcion: "",
+    categoria: null
+  });
 
   useEffect(() => {
     if (modoEdicion) {
@@ -79,8 +81,8 @@ export function ObjetivoGeneralFormulario() {
       const colorAleatorio = colorsUser[Math.floor(Math.random() * colorsUser.length)].color;
       setColor(colorAleatorio);
       datosIniciales.current = {
-        titulo: '',
-        descripcion: '',
+        titulo: "",
+        descripcion: "",
         categoria: null,
       };
       setIsLoading(false);
@@ -97,7 +99,7 @@ export function ObjetivoGeneralFormulario() {
 
   //DESCARTAR CAMBIOS
   useEffect(() => {
-    const beforeRemoveListener = navigation.addListener('beforeRemove', (e) => {
+    const beforeRemoveListener = navigation.addListener("beforeRemove", (e) => {
       if (!hayCambios()) {return}
       e.preventDefault();
       Alert.alert(
@@ -156,24 +158,38 @@ export function ObjetivoGeneralFormulario() {
       if (!authToken || !refreshToken) return;
       const api = createApi(authToken, refreshToken, setAuthToken);
       if (modoEdicion) {
-        console.log("[plan: objetivo-general-agregar] Editando objetivo general:", { pacienteID, titulo, descripcion, categoria, color });
+        console.log("[plan: objetivo-general-agregar] Editando objetivo general:", {
+          pacienteID,
+          titulo,
+          descripcion,
+          categoria,
+          color
+        });
         {
-          const res = await api.put("/objetivos/detalle/" + id + "/", {titulo: titulo,
-                                                                       descripcion: descripcion,
-                                                                       categoria:  categoria,
-                                                                       color: color},
-                                                                      {timeout: 5000})
+          const res = await api.put("/objetivos/detalle/" + id + "/", {
+            titulo: titulo,
+            descripcion: descripcion,
+            categoria:  categoria,
+            color: color
+          }, {timeout: 5000})
           console.log("[plan: objetivo-general-agregar] Respuesta:", res.data);
           router.push(`/profesional/${paciente}/plan?recargar=1&success=1`);
         }
       } else {
-        console.log("[plan: objetivo-general-agregar] Creando objetivo general:", { pacienteID, titulo, descripcion, categoria, color });
+        console.log("[plan: objetivo-general-agregar] Creando objetivo general:", {
+          pacienteID,
+          titulo,
+          descripcion,
+          categoria,
+          color
+        });
         {
-          const res = await api.post("/objetivos/" + pacienteID + "/", {titulo: titulo,
-                                                                        descripcion: descripcion,
-                                                                        categoria:  categoria,
-                                                                        color: color},
-                                                                       {timeout: 5000})
+          const res = await api.post("/objetivos/" + pacienteID + "/", {
+            titulo: titulo,
+            descripcion: descripcion,
+            categoria:  categoria,
+            color: color
+          }, {timeout: 5000})
           console.log("[plan: objetivo-general-agregar] Respuesta:", res.data);
           router.push(`/profesional/${paciente}/plan?recargar=1&success=1`);
         }
@@ -193,48 +209,52 @@ export function ObjetivoGeneralFormulario() {
   //VISTA
   return (
     <DescartarCambiosContext.Provider value={{ handleDescartarCambios }}>
-      <KeyboardAwareScrollView
-        className="flex-1" 
-        contentContainerStyle={{ flexGrow: 1, padding: 8 }} 
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={24}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
       >
-        <Titulo> 
-          {modoEdicion ? "Editar objetivo general" : "Agregar objetivo general"}
-        </Titulo>
-        {isLoading ? (
-          <IndicadorCarga/>
-        ) : (
-          <View className="gap-2">
-            <FormularioCampo
-              label={"Título"}
-              value={titulo}
-              onChangeText={setTitulo}
-              placeholder={"Ingresa un título"}
-              maxLength={255}
-              asterisco={true}
-              tipo={2}
-            />
-            <FormularioCampo
-              label={"Descripción"}
-              value={descripcion}
-              onChangeText={setDescripcion}
-              placeholder={"Ingresa una descripción"}
-              multiline
-              maxLength={4000}
-              asterisco={true}
-              tipo={2}
-            />
-            <FormularioCampoSelect
-              label={"Categoría"}
-              placeholder={"Selecciona una categoría"}
-              items={categoriasItems}
-              selectedId={categoria}
-              onChange={setCategoria}
-              asterisco={true}
-              tipo={2}
-            />
-            <FormularioCampoSelect
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 2, paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Titulo> 
+            {modoEdicion ? "Editar objetivo general" : "Agregar objetivo general"}
+          </Titulo>
+          {isLoading ? (
+            <IndicadorCarga/>
+          ) : (
+            <View className="gap-2">
+              <FormularioCampo
+                label={"Título"}
+                value={titulo}
+                onChangeText={setTitulo}
+                placeholder={"Ingresa un título"}
+                maxLength={255}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampo
+                label={"Descripción"}
+                value={descripcion}
+                onChangeText={setDescripcion}
+                placeholder={"Ingresa una descripción"}
+                multiline
+                maxLength={4000}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampoSelect
+                label={"Categoría"}
+                placeholder={"Selecciona una categoría"}
+                items={categorias}
+                selectedId={categoria}
+                onChange={setCategoria}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampoSelect
                 label={"Color"}
                 placeholder={"Selecciona un color"}
                 items={colorsUser.map(c => ({ id: c.color, titulo: c.titulo, color: c.color }))}
@@ -242,16 +262,17 @@ export function ObjetivoGeneralFormulario() {
                 onChange={setColor}
                 asterisco={true}
                 tipo={2}
-            />
-            <Boton
-              texto={"Guardar"}
-              onPress={handleGuardar}
-              isLoading={isLoadingBoton}
-              tipo={3}
-            />
-          </View>
-        )}
-      </KeyboardAwareScrollView>
+              />
+              <Boton
+                texto={"Guardar"}
+                onPress={handleGuardar}
+                isLoading={isLoadingBoton}
+                tipo={3}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </DescartarCambiosContext.Provider>
   );
 };

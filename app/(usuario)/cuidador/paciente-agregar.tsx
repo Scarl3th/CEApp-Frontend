@@ -1,7 +1,6 @@
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { Alert, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import React, { useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useAuth } from "@/context/auth";
 import { Boton } from "@/components/base/Boton";
 import { Titulo } from "@/components/base/Titulo";
@@ -44,47 +43,52 @@ export default function PacienteAgregarCuidador() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      className="flex-1"
-      contentContainerStyle={{ flexGrow: 1, padding: 16 }}
-      keyboardShouldPersistTaps="handled"
-      extraScrollHeight={24}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
     >
-      <Titulo>Agregar paciente</Titulo>
-      <View className="gap-2">
-        <FormularioCampo
-          label={"Nombre"}
-          value={nombre}
-          onChangeText={setNombre}
-          placeholder={"Ingresa un nombre"}
-          maxLength={255}
-          asterisco={true}
-          tipo={2}
-        />
-        <FormularioCampoFecha
-          fecha={fechaNacimiento}
-          setFecha={setFechaNacimiento}
-          label={"Fecha de nacimiento"}
-          placeholder={"Selecciona una fecha de nacimiento..."}
-          asterisco={true}
-          tipo={2}
-        />
-        <FormularioCampo
-          label={"Sexo"}
-          value={sexo}
-          onChangeText={setSexo}
-          radioButton
-          options={["Masculino", "Femenino", "Otro"]}
-          asterisco={true}
-          tipo={2}
-        />
-        <Boton
-          texto={"Guardar"}
-          onPress={handleGuardar}
-          isLoading={isLoadingBoton}
-          tipo={3}
-        />
-      </View>
-    </KeyboardAwareScrollView>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, padding: 16 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Titulo>Agregar paciente</Titulo>
+        <View className="gap-2">
+          <FormularioCampo
+            label={"Nombre"}
+            value={nombre}
+            onChangeText={setNombre}
+            placeholder={"Ingresa un nombre"}
+            maxLength={255}
+            asterisco={true}
+            tipo={2}
+          />
+          <FormularioCampoFecha
+            fecha={fechaNacimiento}
+            setFecha={setFechaNacimiento}
+            label={"Fecha de nacimiento"}
+            placeholder={"Selecciona una fecha de nacimiento..."}
+            asterisco={true}
+            tipo={2}
+          />
+          <FormularioCampo
+            label={"Sexo"}
+            value={sexo}
+            onChangeText={setSexo}
+            radioButton
+            options={["Masculino", "Femenino", "Otro"]}
+            asterisco={true}
+            tipo={2}
+          />
+          <Boton
+            texto={"Guardar"}
+            onPress={handleGuardar}
+            isLoading={isLoadingBoton}
+            tipo={3}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

@@ -1,4 +1,4 @@
-import { BotonRadio } from "@/components/base/Boton";
+import { Boton, BotonRadio } from "@/components/base/Boton";
 import { formatearFechaString } from "@/components/base/FormatearFecha";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { CustomModal } from "@/components/base/Modal";
@@ -7,8 +7,9 @@ import { Icons } from "@/constants/icons";
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Alert, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { formatearTiempo } from '@/components/base/FormatearFecha';
 
 function capitalizeFirstLetter(text: string) {
   if (!text) return "";
@@ -51,7 +52,7 @@ const estilosPorTipo: Record<
     container: "w-full",
     label: "text-primary font-semibold mb-1",
     input: "border border-primary rounded-lg text-start px-4 mb-1",
-    placeholderColor: colors.mediumgrey,
+    placeholderColor: colors.mediumdarkgrey,
   },
   2: {
     container: "w-full",
@@ -81,7 +82,6 @@ interface CampoFormularioProps {
   setOpen?: (open: boolean) => void; // setter externo
   asterisco?: boolean;
 }
-
 export function FormularioCampo({
   label,
   placeholder,
@@ -126,7 +126,10 @@ export function FormularioCampo({
         <View className="w-full relative">
           <TextInput
             className={estilos.input}
-            style={{ paddingRight: 40 }}
+            style={{
+              paddingRight: 40,
+              color: colors.black,
+            }}
             placeholder={placeholder}
             placeholderTextColor={estilos.placeholderColor}
             secureTextEntry={secureTextEntry}
@@ -511,15 +514,24 @@ export function FormularioCampoFecha({
           <View
             className="rounded-lg border px-4 py-3"
             style={{
-              backgroundColor: pressed ? colors.mediumlightgrey : colors.white,
-              borderColor: pressed ? colors.mediumlightgrey : colors.mediumgrey,
+              backgroundColor:
+                pressed ? colors.mediumlightgrey :
+                fecha ? colors.primary :
+                colors.white,
+              borderColor:
+                pressed ? colors.mediumlightgrey :
+                fecha ? colors.primary :
+                colors.mediumgrey,
             }}
           >
             <View className="flex-row items-center gap-2">
-              <Text className="flex-1 text-base" style={{ color: colors.mediumdarkgrey }}>
+              <Text
+                className="flex-1 text-base"
+                style={{ color: fecha ? colors.white : colors.mediumdarkgrey }}
+              >
                 {fecha ? formatearFechaString(fecha, { day: "numeric", month: "long", year: "numeric" }) : placeholder}
               </Text>
-              <Ionicons name={Icons["derecha"].iconName} size={20} color={colors.mediumdarkgrey}/>
+              <Ionicons name={Icons["derecha"].iconName} size={20} color={fecha ? colors.white : colors.mediumdarkgrey}/>
             </View>
           </View>
         )}
@@ -580,15 +592,24 @@ export function FormularioCampoFechaFutura({
           <View
             className="rounded-lg border px-4 py-3"
             style={{
-              backgroundColor: pressed ? colors.mediumlightgrey : colors.white,
-              borderColor: pressed ? colors.mediumlightgrey : colors.mediumgrey,
+              backgroundColor:
+                pressed ? colors.mediumlightgrey :
+                fecha ? colors.primary :
+                colors.white,
+              borderColor:
+                pressed ? colors.mediumlightgrey :
+                fecha ? colors.primary :
+                colors.mediumgrey,
             }}
           >
             <View className="flex-row items-center gap-2">
-              <Text className="flex-1 text-base" style={{ color: colors.mediumdarkgrey }}>
+              <Text
+                className="flex-1 text-base"
+                style={{ color: fecha ? colors.white : colors.mediumdarkgrey }}
+              >
                 {fecha ? formatearFechaString(fecha, { day: "numeric", month: "long", year: "numeric" }) : placeholder}
               </Text>
-              <Ionicons name={Icons["derecha"].iconName} size={20} color={colors.mediumdarkgrey}/>
+              <Ionicons name={Icons["derecha"].iconName} size={20} color={fecha ? colors.white : colors.mediumdarkgrey}/>
             </View>
           </View>
         )}
@@ -636,15 +657,24 @@ export function FormularioCampoHora({
           <View
             className="rounded-lg border px-4 py-3"
             style={{
-              backgroundColor: pressed ? colors.mediumlightgrey : colors.white,
-              borderColor: pressed ? colors.mediumlightgrey : colors.mediumgrey,
+              backgroundColor:
+                pressed ? colors.mediumlightgrey :
+                hora ? colors.primary :
+                colors.white,
+              borderColor:
+                pressed ? colors.mediumlightgrey :
+                hora ? colors.primary :
+                colors.mediumgrey,
             }}
           >
             <View className="flex-row items-center gap-2">
-              <Text className="flex-1 text-base" style={{ color: colors.mediumdarkgrey }}>
+              <Text
+                className="flex-1 text-base"
+                style={{ color: hora ? colors.white : colors.mediumdarkgrey }}
+              >
                 {hora ? formatearFechaString(hora, {hour: '2-digit', minute:'2-digit'}) : placeholder}
               </Text>
-              <Ionicons name={Icons["derecha"].iconName} size={20} color={colors.mediumdarkgrey}/>
+              <Ionicons name={Icons["derecha"].iconName} size={20} color={hora ? colors.white : colors.mediumdarkgrey}/>
             </View>
           </View>
         )}
@@ -790,3 +820,272 @@ export function FormularioCampoInforme({
       </Pressable>
     </View>
   );}
+  
+
+  //FORMULARIO CAMPO: DURACIÓN
+  interface FormularioCampoDuracionProps {
+    label: string;
+    value?: number;
+    onChange: (minutes: number) => void;
+    placeholder?: string;
+    asterisco?: boolean;
+    tipo?: number;
+    presets?: number[];
+  }
+  export function FormularioCampoDuracion({
+    label,
+    value,
+    onChange,
+    placeholder = "HH:MM",
+    asterisco,
+    tipo = 1,
+    presets = [30, 45, 60, 90, 120],
+  }: FormularioCampoDuracionProps) {
+    const [hours, setHours] = useState<string>("");
+    const [minutes, setMinutes] = useState<string>("");
+    const [selectedPreset, setSelectedPreset] = useState<number | "custom" | null>(null);
+    const [showCustomModal, setShowCustomModal] = useState(false);
+    // Inicializar valores si se recibe value
+    useEffect(() => {
+      if (value === undefined) {
+        setHours("");
+        setMinutes("");
+        setSelectedPreset(null);
+        return;
+      }
+      const h = Math.floor(value / 60);
+      const m = value % 60;
+      setHours(h.toString());
+      setMinutes(m.toString());
+      if (presets.includes(value)) {
+        setSelectedPreset(value);
+      } else {
+        setSelectedPreset("custom");
+      }
+    }, [value, presets]);
+    const handleHoursChange = (text: string) => {
+      const h = text.replace(/[^0-9]/g, "");
+      setHours(h);
+      const totalMinutes = Number(h || 0) * 60 + Number(minutes || 0);
+      onChange(totalMinutes);
+      setSelectedPreset("custom");
+    };
+    const handleMinutesChange = (text: string) => {
+      let m = text.replace(/[^0-9]/g, "");
+      if (Number(m) > 59) m = "59";
+      setMinutes(m);
+      const totalMinutes = Number(hours || 0) * 60 + Number(m || 0);
+      onChange(totalMinutes);
+      setSelectedPreset("custom");
+    };
+    const handlePresetPress = (minutesPreset: number) => {
+      if (selectedPreset === minutesPreset) {
+        // Ya estaba seleccionado → des-seleccionar
+        setHours("");
+        setMinutes("");
+        setSelectedPreset(null);
+        onChange(undefined);
+        return;
+      }
+      const h = Math.floor(minutesPreset / 60);
+      const m = minutesPreset % 60;
+      setHours(h.toString());
+      setMinutes(m.toString());
+      setSelectedPreset(minutesPreset);
+      onChange(minutesPreset);
+    };
+    const handleCustomPress = () => {
+      setShowCustomModal(true);
+    };
+    return (
+      <View className="w-full mb-2">
+        <FormularioCampoLabel label={label} asterisco={asterisco} tipo={tipo}/>
+        {value 
+          ? (<Text className="text-black font-medium mt-2 mb-4 text-center">{formatearTiempo(value)}</Text>)
+          : (<Text className="text-mediumdarkgrey mt-2 mb-4 text-center">Selecciona la duración de la sesión de terapia</Text>)
+        }
+        {/* Presets + Botón personalizado */}
+        <View className="gap-2 flex-row justify-center flex-wrap items-center">
+          {presets.map((p) => {
+            const h = Math.floor(p / 60);
+            const m = p % 60;
+            const labelPreset = h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+            const isSelected = selectedPreset === p;
+            return (
+              <Pressable key={p} onPress={() => handlePresetPress(p)}>
+                {({ pressed }) => (
+                  <View
+                    className="rounded-lg border px-4 py-3"
+                    style={{
+                      backgroundColor:
+                        pressed ? colors.mediumlightgrey :
+                        isSelected ? colors.primary :
+                        colors.white,
+                      borderColor:
+                        pressed ? colors.mediumlightgrey :
+                        isSelected ? colors.primary :
+                        colors.mediumgrey,
+                    }}
+                  >
+                    <Text
+                      className="text-base"
+                      style={{ color: isSelected ? colors.white : colors.mediumdarkgrey }}
+                    >
+                      {labelPreset}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+          {/* Botón personalizado */}
+          <Pressable onPress={handleCustomPress}>
+            {({ pressed }) => {
+              const isCustomSelected = selectedPreset === "custom";
+              return (
+                <View
+                  className="rounded-lg border px-4 py-3 gap-1 flex-row items-center"
+                  style={{
+                    backgroundColor:
+                      pressed ? colors.mediumlightgrey :
+                        isCustomSelected ? colors.primary :
+                        colors.white,
+                      borderColor:
+                        pressed ? colors.mediumlightgrey :
+                        isCustomSelected ? colors.primary :
+                        colors.mediumgrey,
+                    }}
+                >
+                  <Text
+                    className="text-base"
+                    style={{ color: isCustomSelected ? colors.white : colors.mediumdarkgrey }}
+                  >
+                    {isCustomSelected
+                      ? `${Number(hours)}h ${Number(minutes)}m`
+                      : "Personalizado"}
+                  </Text>
+                  <Ionicons
+                    name={Icons["abajo"].iconName}
+                    size={20}
+                    color={isCustomSelected ? colors.white : colors.mediumdarkgrey}
+                  />
+                </View>
+              );
+            }}
+          </Pressable>
+        </View>
+        {/* MODAL */}
+        <CustomModal
+          visible={showCustomModal}
+          onClose={() => setShowCustomModal(false)}
+          tipo={"expandible"}
+        >
+          <View className="flex-1 p-2 gap-4 justify-center">
+            <Text className="text-black text-xl font-bold">Duración personalizada</Text>
+            <View className="flex-row gap-2 justify-center">
+              <TextInput
+                value={hours}
+                onChangeText={handleHoursChange}
+                keyboardType="numeric"
+                placeholder="HH"
+                className="border border-gray-400 rounded-lg p-2 text-center flex-1"
+                maxLength={2}
+              />
+              <Text className="self-center text-black text-lg">horas</Text>
+              <TextInput
+                value={minutes}
+                onChangeText={handleMinutesChange}
+                keyboardType="numeric"
+                placeholder="MM"
+                className="border border-gray-400 rounded-lg p-2 text-center flex-1"
+                maxLength={2}
+              />
+              <Text className="self-center text-black text-lg">minutos</Text>
+            </View>
+            <Boton
+              texto={"Aceptar"}
+              onPress={() => setShowCustomModal(false)}
+              tipo={3}
+            />
+          </View>
+        </CustomModal>
+      </View>
+    );
+  }
+  
+  interface Animo {
+    id: string | number;
+    nombre: string;
+    emoji: string;
+  }
+  const animos = [
+    { id: "Feliz", emoji: "😊", nombre: "Feliz" },
+    { id: "Triste", emoji: "😢", nombre: "Triste" },
+    { id: "Molesto", emoji: "😡", nombre: "Molesto" },
+    { id: "Entusiasmado", emoji: "🤩", nombre: "Entusiasmado" },
+    { id: "Sorprendido", emoji: "😮", nombre: "Sorprendido" },
+    { id: "Confundido", emoji: "😕", nombre: "Confundido" },
+    { id: "Cansado", emoji: "🥱", nombre: "Cansado" },
+    { id: "Neutral", emoji: "😐", nombre: "Neutral" },
+  ];
+  
+  //FORMULARIO CAMPO: ÁNIMO
+  interface FormularioCampoAnimoProps {
+    label: string;
+    asterisco: boolean;
+    tipo: number;
+    value?: Animo;
+    onChange: (selected: Animo) => void;
+  }
+  export function FormularioCampoAnimo({
+    label,
+    asterisco,
+    tipo,
+    value,
+    onChange
+  }: FormularioCampoAnimoProps) {
+    return (
+      <View className="w-full mb-2">
+        <FormularioCampoLabel label={label} asterisco={asterisco} tipo={tipo}/>
+        {value 
+          ? (<Text className="text-black font-medium mt-2 mb-4 text-center">{value.emoji} {value.nombre}</Text>)
+          : (<Text className="text-mediumdarkgrey mt-2 mb-4 text-center">Selecciona el estado de ánimo del paciente</Text>)
+        }
+        <View className="gap-2 flex-row justify-center flex-wrap">
+          {animos.map((item) => {
+            const seleccionado = value?.id === item.id;
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() => {
+                  if (value?.id === item.id) {
+                    onChange(undefined);
+                  } else {
+                    onChange(item);
+                  }
+                }}
+              >
+                {({ pressed }) => (
+                  <View
+                    className="rounded-full border p-4 w-16 h-16 justify-center items-center"
+                    style={{
+                      backgroundColor:
+                        pressed ? colors.mediumlightgrey :
+                        seleccionado ? colors.primary :
+                        colors.white,
+                      borderColor:
+                        pressed ? colors.mediumlightgrey :
+                        seleccionado ? colors.primary :
+                        colors.mediumgrey,
+                    }}
+                  >
+                  <Text className="text-2xl">{item.emoji}</Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    );
+  }

@@ -1,58 +1,14 @@
 import React, { useEffect, useState } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
+import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { Titulo } from "@/components/base/Titulo";
-import { IconType, Icons } from "@/constants/icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { TarjetaInicio } from "@/components/base/Tarjeta";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearTiempo } from "@/components/base/FormatearFecha";
-
-function TarjetaInicio({
-  onPress,
-  titulo,
-  subtitulo,
-  icono,
-  tarjetaColor = colors.lightgrey,
-  fullWidth = false,
-}: {
-  onPress: () => void;
-  titulo: string;
-  subtitulo: string[];
-  icono?: IconType;
-  tarjetaColor?: string;
-  fullWidth?: boolean;
-}) {
-  const subtituloes = Array.isArray(subtitulo) ? subtitulo : [subtitulo];
-  const subtituloesTexto = subtituloes.join(" / ");
-  return (
-    <Pressable onPress={onPress} className="rounded-lg" style={{ width: fullWidth ? "100%" : "48%" }}>
-      {({ pressed }) => (
-        <View
-          className="rounded-lg p-4 my-2 gap-1 items-center justify-start"
-          style = {{ backgroundColor: pressed ? colors.mediumlightgrey : tarjetaColor }}
-        >
-          {icono && (
-            <Ionicons
-              name={icono}
-              size={30}
-              color={colors.black}
-              style={{ alignSelf: "center", marginBottom: 4 }}
-            />
-          )}
-          <Text className="text-base font-semibold text-center" style={{ color: colors.black }}
-          >
-            {titulo}
-          </Text>
-          <Text className="text-sm text-center" style={{ color: colors.mediumdarkgrey }}>
-            {subtituloesTexto}
-          </Text>
-        </View>
-      )}
-    </Pressable>
-  );
-}
 
 export function InicioPaciente() {
 
@@ -103,6 +59,7 @@ export function InicioPaciente() {
   return (
     <View className="flex-1">
       <View className="justify-center items-center">
+        {/* TÍTULO */}
         <Titulo>
           {`¡Bienvenid@, ${usuarioNombre}! 👋`}
           </Titulo>
@@ -110,10 +67,12 @@ export function InicioPaciente() {
           {`Estás viendo el plan de trabajo de ${pacienteNombre}`}
         </Text>
       </View>
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ) : (
-        <ScrollView>
+        <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
+          {/* BOTÓN: AGREGAR PROFESIONAL */}
           {!isProfesional && (
             <Pressable onPress={() => router.push(`/cuidador/${paciente}/equipo/equipo-agregar`)}>
               {({ pressed }) => (
@@ -132,6 +91,7 @@ export function InicioPaciente() {
               )}
             </Pressable>
           )}
+          {/* MÉTRICAS */}
           {!error ? (
             <View className="flex-row flex-wrap justify-between">
               <TarjetaInicio
@@ -155,6 +115,7 @@ export function InicioPaciente() {
               />
             </View>
           ) : null}
+          {/* HERRAMIENTAS */}
           <Text className="text-lg text-center mt-2">Conoce las herramientas que tenemos para ti:</Text>
           <View className="flex-row flex-wrap justify-between">
             <TarjetaInicio

@@ -1,14 +1,13 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, View } from "react-native";
-import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { colors } from "@/constants/colors";
 import { Titulo } from "@/components/base/Titulo";
 import { IconType, Icons } from "@/constants/icons";
 import { CustomToast } from "@/components/base/Toast";
-import { BotonEliminar } from "@/components/base/Boton";
-import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
+import { TarjetaOpcion } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaString } from "@/components/base/FormatearFecha";
@@ -16,14 +15,14 @@ import { formatearFechaString } from "@/components/base/FormatearFecha";
 //ACTUALIZACIÓN
 interface Actualizacion {
   id: string;
-  vista: string; //"Plan de trabajo" || "Equipo" (cuidado con mayúsculas)
-  nombre_objetivo?: string; //nombre del objetivo (si corresponde a una actualización de objetivos)
-  tipo_objetivo?: string; // "general" || "especifico"
-  accion: string; //"agregar" || "editar" || "eliminar"
-  profesional: string; //Nombre del profesional
-  estado_antiguo?: string; //estado antiguo del objetivo específico (solo corresponde si es editar)
-  estado_nuevo?: string; //estado nuevo del objetivo específico (solo corresponde si es agregar o editar)
-  fecha_creacion: Date; //Fecha de la actualización
+  vista: string;
+  nombre_objetivo?: string;
+  tipo_objetivo?: string;
+  accion: string;
+  profesional: string;
+  estado_antiguo?: string;
+  estado_nuevo?: string;
+  fecha_creacion: Date;
 }
 
 //ICONO: ACTUALIZACION
@@ -54,9 +53,13 @@ interface ActualizacionItemProps {
     } | null>
   >;
 }
-const ActualizacionItem = ({ actualizacion, onChange, setToast }: ActualizacionItemProps) => {
+const ActualizacionItem = ({
+  actualizacion,
+  onChange,
+  setToast
+}: ActualizacionItemProps) => {
   
-  const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
+  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
   const router = useRouter();
   const ruta = decodeURIComponent(usePathname());
   if (!ruta) return null;
@@ -81,7 +84,7 @@ const ActualizacionItem = ({ actualizacion, onChange, setToast }: ActualizacionI
                                    setToast({ text1: "Actualización eliminada exitosamente.", type: "success" });
                                    onChange()})
               .catch((err: any) => {console.log("[actualizaciones] Error:", err.message);
-                                    setToast({ text1: "Error al eliminar actualización.", text2: "Intenta nuevamente", type: "error" });
+                                    setToast({ text1: "Hubo un problema al eliminar la actualización.", text2: "Intenta nuevamente", type: "error" });
                                     onChange()});
           }
         }, style: "destructive" },
@@ -91,7 +94,7 @@ const ActualizacionItem = ({ actualizacion, onChange, setToast }: ActualizacionI
 
   //VISTA
   return (
-    <TarjetaTresPuntos
+    <TarjetaOpcion
       onPress={() => {
         if (actualizacion.vista === "Plan de trabajo") {
           router.replace(`/${rol}/${paciente}/plan`);
@@ -135,7 +138,9 @@ const ActualizacionItem = ({ actualizacion, onChange, setToast }: ActualizacionI
             (actualizacion.accion === "editar" && actualizacion.tipo_objetivo === "especifico" && actualizacion.estado_antiguo != actualizacion.estado_nuevo) && actualizacion.estado_nuevo === "No logrado" ? colors.mediumred :
             colors.mediumgrey
           }
-        />}
+        />
+      }
+      tituloTamano={"text-base"}
       iconoFondoColor={
         actualizacion.accion === "agregar" ? colors.secondary :
         actualizacion.accion === "eliminar" ? colors.lightred :
@@ -145,11 +150,9 @@ const ActualizacionItem = ({ actualizacion, onChange, setToast }: ActualizacionI
         (actualizacion.accion === "editar" && actualizacion.tipo_objetivo === "especifico" && actualizacion.estado_antiguo != actualizacion.estado_nuevo) && actualizacion.estado_nuevo === "No logrado" ? colors.lightred :
         colors.primary
       }
-      tituloTamano={"text-base"}
-      tipoModal={"expandible"}
-      tresPuntosContenido={
-        <BotonEliminar onPress={handleEliminar} tipo={"horizontal"}/>
-      }
+      opcionIconoNombre={Icons["eliminar"].iconName}
+      opcionIconoColor={colors.mediumred}
+      opcionOnPress={handleEliminar}
     />
   );
 };
@@ -166,7 +169,11 @@ interface ActualizacionesListaProps {
     } | null>
   >;
 }
-export function ActualizacionesLista({ actualizaciones, onChange, setToast }: ActualizacionesListaProps) {
+export function ActualizacionesLista({
+  actualizaciones,
+  onChange, 
+  setToast
+}: ActualizacionesListaProps) {
   return (
     <FlatList
       data={actualizaciones}
@@ -180,10 +187,7 @@ export function ActualizacionesLista({ actualizaciones, onChange, setToast }: Ac
 //VISTA: ACTUALIZACIONES
 export function Actualizaciones() {
 
-  const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
-  const isProfesional = user?.role === "profesional";
-  const router = useRouter();
-  const { paciente } = useLocalSearchParams();
+  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
 
   //ESTADOS
   const [actualizaciones, setActualizaciones] = useState<Actualizacion[]>([]);
@@ -240,12 +244,14 @@ export function Actualizaciones() {
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo
         onPressRecargar={fetchActualizaciones}
         onBusquedaChange={setBusqueda}
       >
         Actualizaciones
       </Titulo>
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ) : error ? (
@@ -254,7 +260,7 @@ export function Actualizaciones() {
           onPressRecargar={fetchActualizaciones}
         />
       ) : actualizaciones.length === 0 ? (
-        <MensajeVacio mensaje={`Aún no tienes actualizaciones.`}/>
+        <MensajeVacio mensaje={`No se encontraron actualizaciones.`}/>
       ) : (
         <ActualizacionesLista
           actualizaciones={actualizacionesBusqueda}
@@ -262,6 +268,7 @@ export function Actualizaciones() {
           setToast={setToast}
         />
       )}
+      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}

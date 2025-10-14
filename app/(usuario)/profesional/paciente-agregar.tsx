@@ -1,12 +1,11 @@
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { Alert, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import React, { useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useAuth } from "@/context/auth";
 import { Boton } from "@/components/base/Boton";
 import { Titulo } from "@/components/base/Titulo";
-import { FormularioCampo } from "@/components/base/Entrada";
 import { MensajeCard } from "@/components/base/Tarjeta";
+import { FormularioCampo } from "@/components/base/Entrada";
 
 export default function PacienteAgregarProfesional() {
   
@@ -44,38 +43,43 @@ export default function PacienteAgregarProfesional() {
 
   //VISTA
   return (
-    <KeyboardAwareScrollView
-      className="flex-1"
-      contentContainerStyle={{ flexGrow: 1, padding: 16 }}
-      keyboardShouldPersistTaps="handled"
-      extraScrollHeight={24}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
     >
-      <Titulo>Agregar paciente</Titulo>
-      <View className="gap-2">
-        <MensajeCard 
-          titulo={"Instrucciones"}
-          mensajes={[
-            "Solicita el código del paciente a su cuidador.",
-            "Ingresa el código en el campo provisto abajo.",
-            "¡Listo! Ya tendrás acceso al plan de trabajo del paciente."
-          ]}
-        />
-        <FormularioCampo
-          label={""}
-          value={codigo}
-          onChangeText={setCodigo}
-          placeholder={"Ingresa un código"}
-          maxLength={255}
-          asterisco={true}
-          tipo={2}
-        />
-        <Boton
-          texto={"Ingresar código"}
-          onPress={handleGuardar}
-          isLoading={isLoadingBoton}
-          tipo={3}
-        />
-      </View>
-    </KeyboardAwareScrollView>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, padding: 16 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Titulo>Agregar paciente</Titulo>
+        <View className="gap-2">
+          <MensajeCard 
+            titulo={"Instrucciones"}
+            mensajes={[
+              "Solicita el código del paciente a su cuidador.",
+              "Ingresa el código en el campo provisto abajo.",
+              "¡Listo! Ya tendrás acceso al plan de trabajo del paciente."
+            ]}
+          />
+          <FormularioCampo
+            label={""}
+            value={codigo}
+            onChangeText={setCodigo}
+            placeholder={"Ingresa un código"}
+            maxLength={255}
+            asterisco={true}
+            tipo={2}
+          />
+          <Boton
+            texto={"Ingresar código"}
+            onPress={handleGuardar}
+            isLoading={isLoadingBoton}
+            tipo={3}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

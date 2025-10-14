@@ -105,8 +105,10 @@ const ObservacionItem = ({
       icono={<ObservacionIcono/>}
       expandidoContenido={
         <View className="gap-4">
+          {/* DESCRIPCIÓN */}
           {observacion.descripcion?.length > 0 && (<TextoBloque texto={observacion.descripcion}/>)}
           <View className="gap-2">
+            {/* OPCIONES */}
             <TituloSeccion children={"Opciones:"}/>
             <View className="flex-row flex-wrap justify-between gap-2" style={{ flexShrink: 1}}>
               {!isProfesional && <BotonEditar onPress={handleEditar}/>}
@@ -232,12 +234,14 @@ export function Observaciones() {
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo
         onPressRecargar={fetchObservaciones}
         onBusquedaChange={setBusqueda}
       >
         Observaciones
       </Titulo>
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ) : error ? (
@@ -259,7 +263,9 @@ export function Observaciones() {
           setToast={setToast}
         />
       )}
+      {/* BOTÓN FLOTANTE */}
       {!isProfesional && <BotonAgregar onPress={handleAgregarObservacion}/>}
+      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}

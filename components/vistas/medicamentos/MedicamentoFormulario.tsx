@@ -7,8 +7,7 @@ import { useAuth } from "@/context/auth";
 import { DescartarCambiosContext } from "@/context/DescartarCambios";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Switch, Text, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Switch, Text, View } from "react-native";
 import { configurarNotificaciones, programarRecordatorios } from "./Notificaciones";
 
 
@@ -186,11 +185,11 @@ export function MedicamentoFormulario() {
   
       // Validación: Campos obligatorios no ingresados
       if (!nombre || !dosis || !color || !dias || !frecuencia) {
-        Alert.alert("Error", "Por favor completa todos los campos obligatorios.");
+        Alert.alert("Error", "Por favor, completa todos los campos obligatorios marcados con *.");
           return;
       }
       else if(recordatorioActivo && !recordatorio){
-        Alert.alert("Error", "Por favor completa todos los campos obligatorios.");
+        Alert.alert("Error", "Por favor, completa todos los campos obligatorios marcados con *.");
           return;
       }
       
@@ -215,16 +214,16 @@ export function MedicamentoFormulario() {
           console.log("[editar-medicamento] Editando medicamento...");
           const res = await api.put(`/medicamentos/${pacienteID}/${id}/`, payload, { timeout: 5000 });
           sincronizarNotificaciones(api);
-          Alert.alert("Éxito", "Medicamento editado correctamente.", [{ text: "OK", onPress: () => router.push(`/cuidador/${paciente}/medicamentos?recargar=1`) }]);
+          router.push(`/cuidador/${paciente}/medicamentos?success=1`);
         } else {
           console.log("[agregar-medicamento] Agregando medicamento...")
           const res = await api.post(`/medicamentos/${pacienteID}/`, payload, { timeout: 5000 });
           sincronizarNotificaciones(api);
-          Alert.alert("Éxito", "Medicamento creado correctamente.", [{ text: "OK", onPress: () => router.push(`/cuidador/${paciente}/medicamentos?recargar=1`) }]);
+          router.push(`/cuidador/${paciente}/medicamentos?success=1`);
         }
       } catch (err) {
         console.log("Error guardando medicamento:", err);
-        Alert.alert("Error", modoEdicion ? "No se pudo editar el medicamento." : "No se pudo crear el medicamento.", [{ text: "OK" }]);
+        Alert.alert("Error", modoEdicion ? "Hubo un problema al editar el medicamento. Intenta nuevamente." : "Hubo un problema al crear el medicamento. Intenta nuevamente.", [{ text: "OK" }]);
       } finally {
         setIsLoadingBoton(false);
       }
@@ -254,7 +253,16 @@ export function MedicamentoFormulario() {
   //VISTA
   return (
     <DescartarCambiosContext.Provider value={{ handleDescartarCambios }}>
-      <KeyboardAwareScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1, padding: 8 }} keyboardShouldPersistTaps="handled" extraScrollHeight={24}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={130}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 2, paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <Titulo>{modoEdicion ? "Editar medicamento" : "Agregar medicamento"}</Titulo>
         {isLoading ? (
           <IndicadorCarga/>
@@ -299,7 +307,7 @@ export function MedicamentoFormulario() {
                 selected={dias}
                 onChange={setDias}
                 placeholder="Selecciona uno o más días"
-                placeholderSelected="día(s) seleccionados"
+                placeholderSelected="día(s) seleccionado(s)"
                 asterisco={true}
                 tipo={2}
             />
@@ -319,9 +327,9 @@ export function MedicamentoFormulario() {
             {Array.from({ length: frecuencia }).map((_, i) => (
                 <FormularioCampoHora
                   key={i}
-                  label={`Hora ${i + 1}`}
+                  label={`Hora (frecuencia ${i + 1})`}
                   placeholder="Seleccionar hora"
-                  hora={new Date(horarios[i])}
+                  hora={horarios[i] ? new Date(horarios[i]) : null}
                   setHora={(h) => handleSetHorarios(i, h)}
                   asterisco
                   tipo={2}
@@ -331,7 +339,7 @@ export function MedicamentoFormulario() {
 
             {/* Activar Recordatorio */}
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-              <Text style={{ fontSize: 16, marginRight: 10 }}>Recordatorio</Text>
+              <Text className="text-black font-semibold mb-1" style={{ marginRight: 10 }}>Recordatorio</Text>
               <Switch
                 value={recordatorioActivo}
                 onValueChange={setRecordatorioActivo}
@@ -343,7 +351,7 @@ export function MedicamentoFormulario() {
             {/* Minutos recordatorio */}
             {recordatorioActivo && (
               <FormularioCampo
-                label="Minutos de anticipación"
+                label="Minutos de anticipación del recordatorio"
                 placeholder="Ej: 30"
                 value={recordatorio}
                 onChangeText={handleSetRecordatorio}
@@ -368,7 +376,8 @@ export function MedicamentoFormulario() {
             <Boton texto="Guardar" onPress={handleGuardar} isLoading={isLoadingBoton} tipo={3}/>
           </View>
         )}
-      </KeyboardAwareScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </DescartarCambiosContext.Provider>
   );
 

@@ -1,7 +1,6 @@
-import { Alert, View } from "react-native";
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useAuth } from "@/context/auth";
 import { Boton } from "@/components/base/Boton";
 import { Titulo } from "@/components/base/Titulo";
@@ -10,7 +9,6 @@ import { FormularioCampo } from "@/components/base/Entrada";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { DescartarCambiosContext } from "@/context/DescartarCambios";
 
-//MODAL: OBJETIVO ESPECÍFICO FORMULARIO
 interface ObjetivoEspecificoFormularioModalProps {
   visible: boolean;
   onClose: () => void;
@@ -42,7 +40,11 @@ export function ObjetivoEspecificoFormularioModal({
   const [descripcion, setDescripcion] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingBoton, setIsLoadingBoton] = useState(false);
-  const datosIniciales = useRef({ titulo: "", estado: "", descripcion: "" });
+  const datosIniciales = useRef({
+    titulo: "",
+    estado: "",
+    descripcion: ""
+  });
 
   useEffect(() => {
     if (!edicion) {
@@ -163,22 +165,34 @@ export function ObjetivoEspecificoFormularioModal({
       if (!authToken || !refreshToken) return;
       const api = createApi(authToken, refreshToken, setAuthToken);
       if (edicion) {
-        console.log("[plan: objetivo-especifico-agregar] Editando objetivo específico:", { pacienteID, titulo, estado, descripcion });
+        console.log("[plan: objetivo-especifico-agregar] Editando objetivo específico:", {
+          pacienteID,
+          titulo,
+          estado,
+          descripcion
+        });
         {
-          const res = await api.put("objetivos-especificos/" + objetivoEspecificoID + "/", {titulo: titulo,
-                                                                                            estado: estado,
-                                                                                            descripcion: descripcion},
-                                                                                           {timeout: 5000})
+          const res = await api.put("objetivos-especificos/" + objetivoEspecificoID + "/", {
+            titulo: titulo,
+            estado: estado,
+            descripcion: descripcion
+          }, {timeout: 5000})
           console.log("[plan: objetivo-especifico-agregar] Respuesta:", res.data);
           onSuccess();
         }
       } else {
-        console.log("[plan: objetivo-especifico-agregar] Creando objetivo específico:", { pacienteID, titulo, estado, descripcion });
+        console.log("[plan: objetivo-especifico-agregar] Creando objetivo específico:", {
+          pacienteID,
+          titulo,
+          estado,
+          descripcion
+        });
         {
-          const res = await api.post(`objetivos/${objetivoGeneralID}/especificos/`, {titulo: titulo,
-                                                                                     estado: estado,
-                                                                                     descripcion: descripcion},
-                                                                                    {timeout: 5000})
+          const res = await api.post(`objetivos/${objetivoGeneralID}/especificos/`, {
+            titulo: titulo,
+            estado: estado,
+            descripcion: descripcion
+          }, {timeout: 5000})
           console.log("[plan: objetivo-especifico-agregar] Respuesta:", res.data);
           onSuccess();
         }
@@ -199,56 +213,61 @@ export function ObjetivoEspecificoFormularioModal({
   return (
     <CustomModal visible={visible} onClose={handleCerrarModal} tipo={"-y"}>
       <DescartarCambiosContext.Provider value={{ handleDescartarCambios }}>
-        <KeyboardAwareScrollView
-          className="flex-1" 
-          contentContainerStyle={{ flexGrow: 1, padding: 8 }} 
-          keyboardShouldPersistTaps="handled"
-          extraScrollHeight={24}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={0}
         >
-          <Titulo>
-            {edicion ? "Editar objetivo específico" : "Agregar objetivo específico"}
-          </Titulo>
-          {isLoading ? (
-            <IndicadorCarga/>
-          ) : (
-            <View className="gap-2">
-              <FormularioCampo
-                label={"Título"}
-                value={titulo}
-                onChangeText={setTitulo}
-                placeholder={"Ingresa un título"}
-                maxLength={255}
-                asterisco={true}
-                tipo={2}
-              />
-              <FormularioCampo
-                label={"Estado"}
-                value={estado}
-                onChangeText={setEstado}
-                radioButton
-                options={["No logrado", "Medianamente logrado", "Logrado"]}
-                asterisco={true}
-                tipo={2}
-              />
-              <FormularioCampo
-                label={"Descripción"}
-                value={descripcion}
-                onChangeText={setDescripcion}    
-                placeholder={"Ingresa una descripción"}
-                multiline
-                maxLength={4000}
-                asterisco={false}
-                tipo={2}
-              />
-              <Boton
-                texto={"Guardar"}
-                onPress={handleGuardar}
-                isLoading={isLoadingBoton}
-                tipo={3}
-              />
-            </View>
-          )}
-        </KeyboardAwareScrollView>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 2, paddingBottom: 16 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Titulo>
+              {edicion ? "Editar objetivo específico" : "Agregar objetivo específico"}
+            </Titulo>
+            {isLoading ? (
+              <IndicadorCarga/>
+            ) : (
+              <View className="gap-2">
+                <FormularioCampo
+                  label={"Título"}
+                  value={titulo}
+                  onChangeText={setTitulo}
+                  placeholder={"Ingresa un título"}
+                  maxLength={255}
+                  asterisco={true}
+                  tipo={2}
+                />
+                <FormularioCampo
+                  label={"Estado"}
+                  value={estado}
+                  onChangeText={setEstado}
+                  radioButton
+                  options={["No logrado", "Medianamente logrado", "Logrado"]}
+                  asterisco={true}
+                  tipo={2}
+                />
+                <FormularioCampo
+                  label={"Descripción"}
+                  value={descripcion}
+                  onChangeText={setDescripcion}    
+                  placeholder={"Ingresa una descripción"}
+                  multiline
+                  maxLength={4000}
+                  asterisco={false}
+                  tipo={2}
+                />
+                <Boton
+                  texto={"Guardar"}
+                  onPress={handleGuardar}
+                  isLoading={isLoadingBoton}
+                  tipo={3}
+                />
+              </View>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </DescartarCambiosContext.Provider>
     </CustomModal>
   );

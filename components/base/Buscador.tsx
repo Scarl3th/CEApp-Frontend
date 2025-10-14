@@ -1,7 +1,7 @@
-import { View, TextInput } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
+import { Icons } from "@/constants/icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { TextInput, View } from "react-native";
 
 interface BuscadorProps {
   busqueda: string;
@@ -23,10 +23,12 @@ export function Buscador({
         </View>
       )}
       <TextInput
+        className="flex-1 py-2"
+        style={{ color: colors.black }}
         value={busqueda}
         onChangeText={setBusqueda}
         placeholder={placeholder}
-        className="flex-1 py-2"
+        placeholderTextColor={colors.mediumdarkgrey}
       />
     </View>
   );

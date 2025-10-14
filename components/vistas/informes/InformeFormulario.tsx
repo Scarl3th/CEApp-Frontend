@@ -1,13 +1,12 @@
-import { Boton } from "@/components/base/Boton";
-import { FormularioCampo, FormularioCampoInforme } from "@/components/base/Entrada";
-import { Titulo } from "@/components/base/Titulo";
-import { EspacioUsadoBarra } from "@/components/vistas/informes/Componentes";
-import { useAuth } from "@/context/auth";
-import { DescartarCambiosContext } from "@/context/DescartarCambios";
-import { useNavigation, usePathname, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useNavigation, usePathname, useRouter } from "expo-router";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { useAuth } from "@/context/auth";
+import { Boton } from "@/components/base/Boton";
+import { Titulo } from "@/components/base/Titulo";
+import { DescartarCambiosContext } from "@/context/DescartarCambios";
+import { EspacioUsadoBarra } from "@/components/vistas/informes/Componentes";
+import { FormularioCampo, FormularioCampoInforme } from "@/components/base/Entrada";
 
 export function InformeFormulario() {
 
@@ -140,14 +139,7 @@ export function InformeFormulario() {
           headers: { "Content-Type": "multipart/form-data" },
           timeout: 5000
         });
-        Alert.alert(
-          "Éxito",
-          "Informe guardado correctamente.",
-          [{
-            text: "OK",
-            onPress: () => {router.push(`/${rol}/${paciente}/informes`)},
-          }]
-        )
+        router.push(`/${rol}/${paciente}/informes?success=1`);
       }
     } catch(err) {
       console.log("[informes: informe-agregar] Error:", err); 
@@ -164,12 +156,16 @@ export function InformeFormulario() {
   //VISTA
   return (
     <DescartarCambiosContext.Provider value={{ handleDescartarCambios }}>
-      <KeyboardAwareScrollView
-        className="flex-1" 
-        contentContainerStyle={{ flexGrow: 1, padding: 8 }} 
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={24}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={130}
       >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 2, paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <Titulo> 
           Agregar informe
         </Titulo>
@@ -204,7 +200,8 @@ export function InformeFormulario() {
             tipo={3}
           />
         </View>
-      </KeyboardAwareScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </DescartarCambiosContext.Provider>
   );
 

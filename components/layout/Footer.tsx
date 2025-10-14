@@ -1,11 +1,11 @@
-import React from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
-import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
-import { useAuth } from "@/context/auth";
 import { colors } from "@/constants/colors";
 import { IconType, Icons } from "@/constants/icons";
+import { useAuth } from "@/context/auth";
 import { useDescartarCambios } from "@/context/DescartarCambios";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import React from "react";
+import { Pressable, Text, View } from "react-native";
 
 function usarDescartarCambios(pathname: string): boolean {
   return pathname.includes("/objetivo") || pathname.includes("/entrada");
@@ -46,13 +46,9 @@ const FooterItem = ({
 export function Footer() {
 
   const { handleDescartarCambios } = useDescartarCambios();
-
   const router = useRouter();
-
   const pathname = usePathname();
-
   const { paciente } = useLocalSearchParams();
-
   const { user } = useAuth();
   const isProfesional = user?.role === "profesional";
   const isCuidador = user?.role === "cuidador";

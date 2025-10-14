@@ -1,10 +1,9 @@
-import { Alert, View } from "react-native";
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useAuth } from "@/context/auth";
-import { Boton } from "@/components/base/Boton";
 import { Titulo } from "@/components/base/Titulo";
+import { Boton } from "@/components/base/Boton";
 import { FormularioCampo } from "@/components/base/Entrada";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { DescartarCambiosContext } from "@/context/DescartarCambios";
@@ -30,7 +29,10 @@ export default function ActividadAgregar() {
   const [descripcion, setDescripcion] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingBoton, setIsLoadingBoton] = useState(false);
-  const datosIniciales = useRef({ titulo: "", descripcion: "" });
+  const datosIniciales = useRef({
+    titulo: "",
+    descripcion: ""
+  });
 
   useEffect(() => {
     if (modoEdicion) {
@@ -125,20 +127,30 @@ export default function ActividadAgregar() {
       if (!authToken || !refreshToken) return;
       const api = createApi(authToken, refreshToken, setAuthToken);
       if (modoEdicion) {
-        console.log("[actividades: actividad-agregar] Editando actividad:", { pacienteID, titulo, descripcion });
+        console.log("[actividades: actividad-agregar] Editando actividad:", {
+          pacienteID,
+          titulo,
+          descripcion
+        });
         {
-          const res = await api.put("/actividades/" + id + "/", {titulo: titulo,
-                                                                 descripcion: descripcion},
-                                                                {timeout: 5000})
+          const res = await api.put("/actividades/" + id + "/", {
+            titulo: titulo,
+            descripcion: descripcion
+          }, {timeout: 5000})
           console.log("[actividades: actividad-agregar] Respuesta:", res.data);
           router.push(`/profesional/${paciente}/actividades?success=1`);
         }
       } else {
-        console.log("[actividades: actividad-agregar] Creando actividad:", { pacienteID, titulo, descripcion });
+        console.log("[actividades: actividad-agregar] Creando actividad:", {
+          pacienteID,
+          titulo,
+          descripcion
+        });
         {
-          const res = await api.post("/actividades/", {titulo: titulo,
-                                                       descripcion: descripcion},
-                                                      {timeout: 5000})
+          const res = await api.post("/actividades/", {
+            titulo: titulo,
+            descripcion: descripcion
+          }, {timeout: 5000})
           console.log("[actividades: actividad-agregar] Respuesta:", res.data);
           router.push(`/profesional/${paciente}/actividades?success=1`);
         }
@@ -158,47 +170,52 @@ export default function ActividadAgregar() {
   //VISTA
   return (
     <DescartarCambiosContext.Provider value={{ handleDescartarCambios }}>
-      <KeyboardAwareScrollView
-        className="flex-1" 
-        contentContainerStyle={{ flexGrow: 1, padding: 8 }} 
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={24}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={130}
       >
-        <Titulo> 
-          {modoEdicion ? 'Editar actividad' : 'Agregar actividad'}
-        </Titulo>
-        {isLoading ? (
-          <IndicadorCarga/>
-        ) : (
-          <View className="gap-2">
-            <FormularioCampo
-              label={"Título"}
-              value={titulo}
-              onChangeText={setTitulo}
-              placeholder={"Ingresa un título"}
-              maxLength={255}
-              asterisco={true}
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 2, paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Titulo> 
+            {modoEdicion ? 'Editar actividad' : 'Agregar actividad'}
+          </Titulo>
+          {isLoading ? (
+            <IndicadorCarga/>
+          ) : (
+            <View className="gap-2">
+              <FormularioCampo
+                label={"Título"}
+                value={titulo}
+                onChangeText={setTitulo}
+                placeholder={"Ingresa un título"}
+                maxLength={255}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampo
+                label={"Descripción"}
+                value={descripcion}
+                onChangeText={setDescripcion}    
+                placeholder={"Ingresa una descripción"}
+                multiline
+                maxLength={4000}
+                asterisco={false}
               tipo={2}
-            />
-            <FormularioCampo
-              label={"Descripción"}
-              value={descripcion}
-              onChangeText={setDescripcion}    
-              placeholder={"Ingresa una descripción"}
-              multiline
-              maxLength={4000}
-              asterisco={false}
-            tipo={2}
-            />
-            <Boton
-              texto="Guardar"
-              onPress={handleGuardar}
-              isLoading={isLoadingBoton}
-              tipo={3}
-            />
-          </View>
-        )}
-      </KeyboardAwareScrollView>
+              />
+              <Boton
+                texto="Guardar"
+                onPress={handleGuardar}
+                isLoading={isLoadingBoton}
+                tipo={3}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </DescartarCambiosContext.Provider>
   );
 };

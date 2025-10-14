@@ -1,16 +1,16 @@
-import { v4 as uuidv4 } from "uuid"; //Para generar ids-aleatoreos sin colisión
-import Constants from "expo-constants";
-import "react-native-get-random-values"; //Tambien para generar ids aleatoreas
-import { usePathname } from "expo-router";
-import { colors } from "@/constants/colors";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, FlatList, InteractionManager, Pressable, Text, TextInput, View } from "react-native";
-import { useAuth } from "@/context/auth";
-import { Icons } from "@/constants/icons";
-import { Titulo } from "@/components/base/Titulo";
-import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
+import { MensajeVacio } from "@/components/base/MensajeVacio";
+import { Titulo } from "@/components/base/Titulo";
+import { colors } from "@/constants/colors";
+import { Icons } from "@/constants/icons";
+import { useAuth } from "@/context/auth";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Constants from "expo-constants";
+import { usePathname } from "expo-router";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, FlatList, InteractionManager, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import "react-native-get-random-values"; //Tambien para generar ids aleatoreas
+import { v4 as uuidv4 } from "uuid"; //Para generar ids-aleatoreos sin colisión
 
 const WS_BASE_URL = Constants.expoConfig?.extra?.wsBaseUrl;
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
@@ -18,9 +18,7 @@ const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
 export default function Chat() {
 
   const {user, authToken, refreshToken, setAuthToken, createApi} = useAuth();
-
   const pathname = usePathname(); 
-
   const plan_id = pathname.split("/")[2].split("-")[0];
 
   //ESTADOS
@@ -444,179 +442,185 @@ const formatearFecha = (fecha: Date) => {
   // --------------------------
   return (
     
-    <View className="flex-1">
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={110}
+    >
 
-      <Titulo onPressRecargar={() => fetchData()}>
-        Chat
-      </Titulo>
-  
-      <View className="flex-1"
-        style={{
-          borderTopWidth: 0.5,
-          borderTopColor: colors.mediumgrey,
-        }}
-      >
-
-      {isLoading ? (
-        <IndicadorCarga/>
-      ) : error ? (
-        <MensajeVacio
-          mensaje={`Hubo un error al cargar los mensajes.\nIntenta nuevamente.`}
-          onPressRecargar={fetchData}
-        />
-      ) : mensajesConSeparadores.length === 0 ? (
-        <MensajeVacio
-          mensaje={`Tu bandeja de chat está vacía.\n¡Empieza la conversación mandando un mensaje!`}
-        />
-      ) : (
-
-          <FlatList
-            ref={flatListRef}
-            data={mensajesConSeparadores}
-            keyExtractor={(item) => item.id.toString()}
-            onScroll={handleScroll}
-            onScrollToIndexFailed={onScrollToIndexFailed}
-            onContentSizeChange={() => {
-              // Solo auto-scroll si estoy abajo y ya se hizo el anclaje inicial
-              if (
-                isAtBottom &&
-                hasAnchoredRef.current &&   // ya se hizo scroll inicial
-                !anchoringRef.current       // no estoy en medio de un scroll manual
-              ) {
-                flatListRef.current?.scrollToEnd({ animated: true });
-              }
-            }}
-
-            renderItem={({ item }) => {
-              
-              if (item.tipo === "nuevo-separador") {
-                return (
-                  <View className="flex-row items-center my-2">
-                    <View className="flex-1 h-px bg-secondary" />
-                    <View className="bg-secondary rounded-full px-4 py-1 items-center">
-                      <Text className="text-white text-base">Nuevos mensajes</Text>
-                    </View>
-                    <View className="flex-1 h-px bg-secondary" />
-                  </View>
-                );
-              }
-
-              if (item.tipo === "separador-fecha") {
-                return (
-                  <View className="bg-mediumdarkgrey rounded-full px-4 py-1 my-2 items-center self-center">
-                    <Text className="text-white text-base">{formatearFecha(item.fecha)}</Text>
-                  </View>
-                );
-              }
-
-              if (item.deleted) return null; // no renderizar mensajes borrados
-
-              // Mensajes normales
-              return (
-                <View
-                  ref={(ref) => {
-                    if (ref && item.tipo === "mensaje") {
-                      itemRefs.current[item.id] = ref;
-                    }
-                  }}
-                  className="p-2 max-w-[80%]"
-                  style={{ alignSelf: item.propio ? "flex-end" : "flex-start" }}
-                >
-                  <Text className="text-black text-base font-semibold">{item.nombre}</Text>
-
-                  <View
-                    className="p-2 rounded-lg flex-row items-center"
-                    style={{
-                      backgroundColor:
-                        item.status === "error"
-                          ? colors.lightred
-                          : item.propio
-                          ? colors.lightblue
-                          : colors.lightpurple,
-                    }}
-                  >
-                    <Text
-                      className={`text-base px-1 ${
-                        item.status === "error" ? "text-red-600 font-semibold" : "text-black"
-                      }`}
-                    >
-                      {item.mensaje}
-                    </Text>
-
-                    {item.status === "error" && (
-                      <Pressable
-                        onPress={() => {
-                          Alert.alert(
-                            "Mensaje no enviado",
-                            "¿Qué quieres hacer con este mensaje?",
-                            [
-                              { text: "Reenviar", onPress: () => reenviarMensaje(item.mensaje, item.id, item.fecha) },
-                              { text: "Borrar", style: "destructive", onPress: () => handleCancelarEnvio(item.id) },
-                              { text: "Salir", style: "cancel" },
-                            ]
-                          );
-                        }}
-                      >
-                        {({ pressed }) => (
-                          <View>
-                            <Ionicons name={"warning"} size={24} color={pressed ? colors.mediumlightgrey : "#dc2626"}/>
-                          </View>
-                        )}
-                      </Pressable>
-                    )}
-                  </View>
-
-                  <Text className="text-black text-xs text-right">
-                    {item.fecha.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </Text>
-                </View>
-              );
-            }}
-
-          />
-
-        )}
-
-        <View
-          className="bg-light pb-4 pt-2 flex-row items-end"
+        <Titulo onPressRecargar={() => fetchData()}>
+          Chat
+        </Titulo>
+    
+        <View className="flex-1"
           style={{
             borderTopWidth: 0.5,
-            borderTopColor: colors.mediumgrey
+            borderTopColor: colors.mediumgrey,
           }}
         >
-          <TextInput
-            className="bg-lightgrey text-black rounded-lg p-2 flex-1"
-            style={{
-              minHeight: 40,
-              maxHeight: 200,
-              height: inputHeight,
-              textAlignVertical: "top",
-            }}
-            placeholder="Escribe un mensaje..."
-            value={texto}
-            onChangeText={setTexto}
-            multiline
-            maxLength={500}
-            onContentSizeChange={(e) => setInputHeight(Math.max(40, e.nativeEvent.contentSize.height))}
+
+        {isLoading ? (
+          <IndicadorCarga/>
+        ) : error ? (
+          <MensajeVacio
+            mensaje={`Hubo un error al cargar los mensajes.\nIntenta nuevamente.`}
+            onPressRecargar={fetchData}
           />
+        ) : mensajesConSeparadores.length === 0 ? (
+          <MensajeVacio
+            mensaje={`Tu bandeja de chat está vacía.\n¡Empieza la conversación mandando un mensaje!`}
+          />
+        ) : (
 
-          <Pressable
-            className="ml-2 justify-center items-center"
-            onPress={() => enviarMensaje()} // Lambda pq no tiene argumentos algo asi dijo chatgpt :)
+            <FlatList
+              ref={flatListRef}
+              data={mensajesConSeparadores}
+              keyExtractor={(item) => item.id.toString()}
+              onScroll={handleScroll}
+              onScrollToIndexFailed={onScrollToIndexFailed}
+              onContentSizeChange={() => {
+                // Solo auto-scroll si estoy abajo y ya se hizo el anclaje inicial
+                if (
+                  isAtBottom &&
+                  hasAnchoredRef.current &&   // ya se hizo scroll inicial
+                  !anchoringRef.current       // no estoy en medio de un scroll manual
+                ) {
+                  flatListRef.current?.scrollToEnd({ animated: true });
+                }
+              }}
+
+              renderItem={({ item }) => {
+                
+                if (item.tipo === "nuevo-separador") {
+                  return (
+                    <View className="flex-row items-center my-2">
+                      <View className="flex-1 h-px bg-secondary" />
+                      <View className="bg-secondary rounded-full px-4 py-1 items-center">
+                        <Text className="text-white text-base">Nuevos mensajes</Text>
+                      </View>
+                      <View className="flex-1 h-px bg-secondary" />
+                    </View>
+                  );
+                }
+
+                if (item.tipo === "separador-fecha") {
+                  return (
+                    <View className="bg-mediumdarkgrey rounded-full px-4 py-1 my-2 items-center self-center">
+                      <Text className="text-white text-base">{formatearFecha(item.fecha)}</Text>
+                    </View>
+                  );
+                }
+
+                if (item.deleted) return null; // no renderizar mensajes borrados
+
+                // Mensajes normales
+                return (
+                  <View
+                    ref={(ref) => {
+                      if (ref && item.tipo === "mensaje") {
+                        itemRefs.current[item.id] = ref;
+                      }
+                    }}
+                    className="p-2 max-w-[80%]"
+                    style={{ alignSelf: item.propio ? "flex-end" : "flex-start" }}
+                  >
+                    <Text className="text-black text-base font-semibold">{item.nombre}</Text>
+
+                    <View
+                      className="p-2 rounded-lg flex-row items-center"
+                      style={{
+                        backgroundColor:
+                          item.status === "error"
+                            ? colors.lightred
+                            : item.propio
+                            ? colors.lightblue
+                            : colors.lightpurple,
+                      }}
+                    >
+                      <Text
+                        className={`text-base px-1 ${
+                          item.status === "error" ? "text-red-600 font-semibold" : "text-black"
+                        }`}
+                      >
+                        {item.mensaje}
+                      </Text>
+
+                      {item.status === "error" && (
+                        <Pressable
+                          onPress={() => {
+                            Alert.alert(
+                              "Mensaje no enviado",
+                              "¿Qué quieres hacer con este mensaje?",
+                              [
+                                { text: "Reenviar", onPress: () => reenviarMensaje(item.mensaje, item.id, item.fecha) },
+                                { text: "Borrar", style: "destructive", onPress: () => handleCancelarEnvio(item.id) },
+                                { text: "Salir", style: "cancel" },
+                              ]
+                            );
+                          }}
+                        >
+                          {({ pressed }) => (
+                            <View>
+                              <Ionicons name={"warning"} size={24} color={pressed ? colors.mediumlightgrey : "#dc2626"}/>
+                            </View>
+                          )}
+                        </Pressable>
+                      )}
+                    </View>
+
+                    <Text className="text-black text-xs text-right">
+                      {item.fecha.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </Text>
+                  </View>
+                );
+              }}
+
+            />
+
+          )}
+
+          <View
+            className="bg-light pb-4 pt-2 flex-row items-end"
+            style={{
+              borderTopWidth: 0.5,
+              borderTopColor: colors.mediumgrey
+            }}
           >
-            {({ pressed }) => (
-              <View
-                className="rounded-full p-2"
-                style={{ backgroundColor: pressed ? colors.mediumlightgrey : colors.secondary }}
-              >
-                <Ionicons name={Icons["enviar"].iconName} size={24} color={"white"}/>
-              </View>
-            )}
-          </Pressable>
-        </View>
+            <TextInput
+              className="bg-lightgrey text-black rounded-lg p-2 flex-1"
+              style={{
+                minHeight: 40,
+                maxHeight: 200,
+                height: inputHeight,
+                textAlignVertical: "top",
+                color: colors.black,
+              }}
+              placeholder="Escribe un mensaje..."
+              placeholderTextColor={colors.mediumdarkgrey}
+              value={texto}
+              onChangeText={setTexto}
+              multiline
+              maxLength={500}
+              onContentSizeChange={(e) => setInputHeight(Math.max(40, e.nativeEvent.contentSize.height))}
+            />
 
-      </View>
-    </View>
+            <Pressable
+              className="ml-2 justify-center items-center"
+              onPress={() => enviarMensaje()} // Lambda pq no tiene argumentos algo asi dijo chatgpt :)
+            >
+              {({ pressed }) => (
+                <View
+                  className="rounded-full p-2"
+                  style={{ backgroundColor: pressed ? colors.mediumlightgrey : colors.secondary }}
+                >
+                  <Ionicons name={Icons["enviar"].iconName} size={24} color={"white"}/>
+                </View>
+              )}
+            </Pressable>
+          </View>
+
+        </View>
+    </KeyboardAvoidingView>
   );
 }
 

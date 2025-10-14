@@ -33,6 +33,8 @@ Algunas consideraciones para generar el apk:
       ],
 
       package:  <nombre arbitrario>  <-- Generalmente es algo como "com.<nombre_usuario>.<nombre-app>"
+
+      softwareKeyboardLayoutMode: "resize",
    }
 ```
 

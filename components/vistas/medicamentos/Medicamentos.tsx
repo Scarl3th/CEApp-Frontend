@@ -5,10 +5,11 @@ import { Titulo } from "@/components/base/Titulo";
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/context/auth";
 import { Ionicons } from "@expo/vector-icons";
+import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Text, View } from "react-native";
-
+import { CustomToast } from "@/components/base/Toast";
 
 const medicamentos = [
   {
@@ -72,8 +73,7 @@ export function Medicamentos() {
 
   const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
   const router = useRouter();
-  const parametros = useLocalSearchParams();
-  const paciente = parametros.paciente;
+  const { paciente, success } = useLocalSearchParams();
   const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
   const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
   const today = new Date().getDay();
@@ -88,9 +88,13 @@ export function Medicamentos() {
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
  
-
   const medicamentosFiltrados = medicamentos.filter((medicamento) => medicamento.dias.includes(selectedTab));
 
+   useEffect(() => {
+    if (success) {
+      setToast({ text1: "Medicamento guardado exitosamente.", type: "success" });
+    }
+  }, [success]);
 
   //FETCH: MEDICAMENTOS
   const fetchMedicamentos = async () => {
@@ -141,10 +145,11 @@ export function Medicamentos() {
               const api = createApi(authToken, refreshToken, setAuthToken);
               await api.delete(`/medicamentos/${pacienteID}/${id}/`); 
               console.log("[medicamentos] Medicamento eliminado correctamente");
+              setToast({ text1: "Medicamento eliminado exitosamente.", type: "success" });
               fetchMedicamentos();
             } catch (err) {
-              console.error("[medicamentos] Error eliminando medicamento:", err);
-              Alert.alert("Error", "No se pudo eliminar el medicamento.");
+              console.error("[medicamentos] Error:", err);
+              setToast({ text1: "Hubo un problema al eliminar el medicamento.", text2: "Intenta nuevamente.", type: "error" });
             }
           }
         }
@@ -244,12 +249,13 @@ export function Medicamentos() {
   //VISTA
   return (
     <View className="flex-1">
-      <Titulo>
-        {`Medicamentos`}
+      {/* TÍTULO */}
+      <Titulo
+        onPressRecargar={fetchMedicamentos}
+      >
+        Medicamentos
       </Titulo>
-
-      {/* Pestañas */}
-
+      {/* PESTAÑAS */}
       <View className="flex-row justify-around bg-lightgrey rounded-xl mt-1 mx-2">
         <BotonTab
           label="Lu"
@@ -294,22 +300,46 @@ export function Medicamentos() {
           onPress={() => setSelectedTab(0)}
         />
       </View>
-
-      {/* Lista de medicamentos */}
-
-      <View className="mb-2  flex-1">
-        {medicamentosFiltrados.length > 0 ? (
-          <FlatList
-            data={medicamentosFiltrados}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderMedicamento}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <MensajeVacio mensaje="No hay medicamentos para este día"/>
-        )}
-      </View>
+      {/* CUERPO */}
+      {isLoading ? (
+        <IndicadorCarga/>
+      ) : error ? (
+        <MensajeVacio
+          mensaje={`Hubo un error al cargar los medicamentos.\nIntenta nuevamente.`}
+          onPressRecargar={fetchMedicamentos}
+        />
+      ) : (
+        <View className="mb-2  flex-1">
+          {medicamentosFiltrados.length > 0 ? (
+            <FlatList
+              data={medicamentosFiltrados}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderMedicamento}
+              showsVerticalScrollIndicator={false}
+            />
+          ) : (
+            <MensajeVacio
+              mensaje={
+                `No se encontraron medicamentos para este día.\n${
+                  !isProfesional ? "¡Comienza a añadir medicamentos usando el botón ＋!" :
+                  null
+                }`
+                }
+            />
+          )}
+        </View>
+      )}
+      {/* BOTÓN FLOTANTE */}
       {!isProfesional && <BotonAgregar onPress={handleAgregarMedicamento}/>}
+      {/* TOAST */}
+      {toast && (
+        <CustomToast
+          text1={toast.text1}
+          text2={toast.text2}
+          type={toast.type}
+          onHide={() => setToast(null)}
+        />
+      )}
     </View>
 
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FlatList, Text, View } from "react-native";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
@@ -81,7 +81,7 @@ export function SelectorPaciente() {
   const primer_nombre = user?.nombre.split(" ")[0];
   const isProfesional = user?.role === "profesional";
   const router = useRouter();
-  const { paciente, success } = useLocalSearchParams();
+  const { paciente, success, loginSuccess } = useLocalSearchParams();
 
   //ESTADOS
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
@@ -99,6 +99,12 @@ export function SelectorPaciente() {
       setToast({ text1: "Paciente guardado exitosamente.", type: "success" });
     }
   }, [success]);
+
+  useEffect(() => {
+    if (loginSuccess) {
+      setToast({ text1: "Inicio de sesión exitoso.", type: "success" });
+    }
+  }, [loginSuccess]);
 
   //FETCH: PACIENTES
   const fetchPacientes = async () => {
@@ -146,6 +152,7 @@ export function SelectorPaciente() {
   return (
     <View className="flex-1 p-4">
       <View className="justify-center items-center">
+        {/* TÍTULO */}
         <Titulo>
           {`¡Bienvenid@, ${primer_nombre}! 👋`}
           </Titulo>
@@ -153,6 +160,7 @@ export function SelectorPaciente() {
           Selecciona un paciente para comenzar:
         </Text>
       </View>
+      {/* CUERPO */}
       <View className="flex-1">
         {isLoading ? (
           <IndicadorCarga/>
@@ -185,7 +193,9 @@ export function SelectorPaciente() {
           </>
         )}
       </View>
+      {/* BOTÓN FLOTANTE */}
       <BotonAgregar onPress={handleAgregarPaciente}/>
+      {/* FLOTANTE */}
       {toast && (
         <CustomToast
           text1={toast.text1}

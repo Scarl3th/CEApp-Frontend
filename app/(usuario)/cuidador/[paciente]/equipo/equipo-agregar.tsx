@@ -2,20 +2,27 @@ import React, { useState } from "react";
 import { usePathname } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import { Alert, Pressable, Text, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useAuth } from "@/context/auth";
 import { colors } from "@/constants/colors";
 import { Boton } from "@/components/base/Boton";
 import { Titulo } from "@/components/base/Titulo";
+import { CustomToast } from "@/components/base/Toast";
 import { MensajeCard } from "@/components/base/Tarjeta";
 
 type CodigoCardProps = {
   codigo: string;
+  setToast: React.Dispatch<
+      React.SetStateAction<{
+        text1: string;
+        text2?: string;
+        type: "success" | "error";
+      } | null>
+    >;
 };
-export function CodigoCard({codigo}: CodigoCardProps) {
+export function CodigoCard({codigo, setToast}: CodigoCardProps) {
   const copiarAlPortapapeles = async () => {
     await Clipboard.setStringAsync(codigo);
-    Alert.alert("Código copiado al portapapeles");
+    setToast({ text1: "Código copiado al portapapeles.", type: "success" });
   };
   return (
     <View className="bg-lightgrey rounded-lg p-4 border border-mediumgrey">
@@ -43,8 +50,9 @@ export default function EquipoAgregar() {
   const pathname = usePathname(); 
   
   //ESTADOS
-  const [codigo, setCodigo] = useState('');
+  const [codigo, setCodigo] = useState("");
   const [isLoadingBoton, setIsLoadingBoton] = useState(false);
+  const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
   
   //HANDLE: GENERAR
   const handleGenerar = async () => {
@@ -60,7 +68,7 @@ export default function EquipoAgregar() {
       console.log("[Generar codigo] Error:", err);
       Alert.alert(
         "Error",
-        "Error al generar el código. Intenta nuevamente.",
+        "Hubo un problema al generar el código. Intenta nuevamente.",
         [{text: "OK"}]
       )
     } finally {
@@ -70,13 +78,10 @@ export default function EquipoAgregar() {
   
   //VISTA
   return (
-    <KeyboardAwareScrollView
-      className="flex-1"
-      contentContainerStyle={{ flexGrow: 1 }}
-      keyboardShouldPersistTaps="handled"
-      extraScrollHeight={24}
-    >
+    <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo>Agregar profesional</Titulo>
+      {/* CUERPO */}
       <View className="gap-2">
         <MensajeCard 
           titulo="Instrucciones"
@@ -87,7 +92,10 @@ export default function EquipoAgregar() {
             "¡Listo! El profesional ya tendrá acceso al plan de trabajo del paciente."
           ]}
         />
-        <CodigoCard codigo={codigo}/>
+        <CodigoCard
+          codigo={codigo}
+          setToast={setToast}
+        />
         <Boton
           texto={"Generar código"}
           onPress={handleGenerar}
@@ -95,7 +103,15 @@ export default function EquipoAgregar() {
           tipo={3}
         />
       </View>
-    </KeyboardAwareScrollView>
+      {toast && (
+        <CustomToast
+          text1={toast.text1}
+          text2={toast.text2}
+          type={toast.type}
+          onHide={() => setToast(null)}
+        />
+      )}
+    </View>
   );
 
 }

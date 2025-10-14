@@ -14,7 +14,7 @@ export function Badge({
 }: BadgeProps) {
   return (
     <View
-      className="rounded-bl-lg mt-2 px-2 py-1 absolute top-0 right-0 z-10"
+      className="rounded-bl-lg mt-2 px-2 py-1 absolute top-0 right-0.5 z-10"
       style={{ backgroundColor: fondoColor }}
     >
       <Text className="text-xs font-bold"

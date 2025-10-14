@@ -143,7 +143,7 @@ const ListaProfesionales = ({
             setToast={setToast}
           />
         )}
-        contentContainerStyle={{ paddingBottom: 50 }}
+        contentContainerStyle={{ paddingBottom: 55 }}
       />
     </View>
   );
@@ -214,9 +214,11 @@ export function EquipoPaciente() {
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo onPressRecargar={fetchEquipo} onBusquedaChange={setBusqueda}>
         Equipo
       </Titulo>
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ): error ? (
@@ -239,7 +241,9 @@ export function EquipoPaciente() {
           setToast={setToast}
         />
       )}
+      {/* BOTÓN FLOTANTE */}
       {!isProfesional ? <BotonAgregar onPress={handleAgregarProfesional} iconoNombre={Icons["vincular"].iconName} iconoTamano={30}/> : null}
+      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}

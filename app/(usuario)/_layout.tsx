@@ -6,7 +6,7 @@ export default function LayoutUsuario() {
   return (
     <>
       <Header />
-      <View className="flex-1">
+      <View className="flex-1 bg-light">
         <Slot />
       </View>
     </>

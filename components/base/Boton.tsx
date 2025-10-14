@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Pressable, ScrollView, Text, View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { CustomModal } from "@/components/base/Modal";
 import { colors } from "@/constants/colors";
 import { IconType, Icons } from "@/constants/icons";
-import { CustomModal } from "@/components/base/Modal";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 //BOTÓN
 interface BotonProps {
@@ -335,7 +335,7 @@ export function BotonDesvincular({
   );
 }
 
-//BOTÓN: DESVINCULAR
+//BOTÓN: DESHABILITAR
 interface BotonDeshabilitarProps {
   onPress: () => void;
   texto?: string;
@@ -526,6 +526,7 @@ interface BotonEsquinaSuperiorProps {
   iconName: IconType;
   color?: string;
   size?: number;
+  top?: number;
   tipo: "izquierda" | "derecha";
 }
 export function BotonEsquinaSuperior({
@@ -534,6 +535,7 @@ export function BotonEsquinaSuperior({
   iconName,
   color = "white",
   size = 40,
+  top = 10,
   tipo,
 }: BotonEsquinaSuperiorProps) {
   return (
@@ -542,7 +544,7 @@ export function BotonEsquinaSuperior({
       style={[
         {
           position: "absolute",
-          top: 10,
+          top: top,
           left: tipo === "izquierda" ? 16 : undefined,
           right: tipo === "derecha" ? 16 : undefined,
           zIndex: 10,
@@ -560,36 +562,6 @@ export function BotonEsquinaSuperior({
     </Pressable>
   );
 }
-
-//BOTÓN: PLAN
-export function BotonPlan({ onPress }: { onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="rounded-full justify-center items-center shadow-lg"
-      style={{
-        position: "absolute",
-        bottom: 16,
-        left: 16,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        elevation: 5,
-        zIndex: 100,
-      }}
-    >
-      {({ pressed }) => (
-        <View
-          className="w-full h-full justify-center items-center rounded-full"
-          style={{ backgroundColor: pressed ? colors.mediumlightgrey : colors.secondary }}
-        >
-          <Ionicons name={Icons["plan"].iconName} size={30} color={colors.white} />
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
 
 //BOTÓN: PROGRESO
 export function BotonProgreso({ onPress }: { onPress: () => void }) {
@@ -728,15 +700,13 @@ export function BotonVincular({
   );
 }
 
+//BOTÓN: TAB
 interface BotonTabProps {
   label: string;
   active: boolean;
   today?: boolean;
   onPress: () => void;
 }
-
-
-//BOTÓN: TAB
 export function BotonTab({
   label,
   active,

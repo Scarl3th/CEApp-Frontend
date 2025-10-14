@@ -16,13 +16,11 @@ import { TarjetaExpandible, TarjetaPequeña } from "@/components/base/Tarjeta";
 import { ObjetivoEspecificoFormularioModal } from "./ObjetivoEspecificoFormulario";
 import { BotonAgregar, BotonDetalles, BotonDesvincular, BotonEditar, BotonEliminar, BotonVincular, BotonTab } from "@/components/base/Boton";
 
-//PROFESIONALES (VINCULADOS AL OBJETIVO ESPECÍFICO)
+//OBJETIVO ESPECÍFICO
 interface Profesional {
   id: string;
   nombre: string;
 }
-
-//OBJETIVO ESPECÍFICO
 interface ObjetivoEspecifico {
   id: string;
   titulo: string;
@@ -191,6 +189,7 @@ const ObjetivoEspecificoItem = ({
   //VISTA
   return (
     <View className="relative">
+      {/* BADGE */}
       {objetivoEspecifico.vinculado === true && (
         <Badge
           fondoColor={colors.secondary}
@@ -198,6 +197,7 @@ const ObjetivoEspecificoItem = ({
           textoColor={colors.white}
         />
       )}
+      {/* TARJETA */}
       <TarjetaExpandible
         titulo={objetivoEspecifico.titulo}
         subtitulo={`Estado: ${estadosMap[objetivoEspecifico.estado]}`}
@@ -213,8 +213,10 @@ const ObjetivoEspecificoItem = ({
           <View className="gap-4">
             {objetivoEspecifico.descripcion && objetivoEspecifico.descripcion.length > 0 && (<TextoBloque texto={objetivoEspecifico.descripcion}/>)}
             <View className="gap-2">
+              {/* OPCIONES */}
               <TituloSeccion children={"Opciones:"}/>
               <View className="gap-2">
+                {/* ACCIONES */}
                 <View className="flex-row flex-wrap items-center justify-between gap-1" style={{ flexShrink: 1 }}>
                   {isProfesional ? (
                     objetivoEspecifico.vinculado === true ? (
@@ -228,7 +230,7 @@ const ObjetivoEspecificoItem = ({
                     )
                   ) : null}
                   <BotonDetalles tipoModal={"expandible"} onOpen={fetchProfesionales}>
-                    <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+                    <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
                       <View className="gap-1">
                         <TituloSeccion
                           children={"Autor:"}
@@ -410,6 +412,7 @@ export function ObjetivosEspecificosModal({
   return (
     <CustomModal visible={visible} onClose={onClose} tipo={"-y"}>
       <View className="flex-1">
+        {/* TÍTULO */}
         <Titulo
           subtitulo={"Objetivos específicos"}
           onPressRecargar={fetchObjetivosEspecificos}
@@ -417,6 +420,7 @@ export function ObjetivosEspecificosModal({
         >
           Plan de trabajo
         </Titulo>
+        {/* PESTAÑAS */}
         <View className="flex-row justify-around bg-lightgrey rounded-xl my-2 ">
           <BotonTab
             label="Activos"
@@ -429,6 +433,7 @@ export function ObjetivosEspecificosModal({
             onPress={() => {setShowInactivos(!showInactivos); setShowActivos(!showActivos)}}
           />
         </View>
+        {/* CUERPO */}
         {isLoading ? (
           <IndicadorCarga/>
         ) : error ? (
@@ -466,6 +471,7 @@ export function ObjetivosEspecificosModal({
             onHide={() => setToast(null)}
           />
         )}
+        {/* MODAL */}
         <ObjetivoEspecificoFormularioModal
           visible={showAgregar}
           onClose={() => {

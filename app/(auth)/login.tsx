@@ -42,7 +42,6 @@ export default function Login() {
       console.log("[login] Comunicándose con la base de datos...");
       const respuesta = await login(correo, contrasena);
       console.log("[login] Inicio de sesión exitoso...");
-      Alert.alert("Éxito", "¡Has iniciado sesión exitosamente!");
       router.replace("/"); //Redireccionar a index
       setCorreo('');
       setContrasena('');

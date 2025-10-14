@@ -1,7 +1,6 @@
-import { Alert, View } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useAuth } from "@/context/auth";
 import { Boton } from "@/components/base/Boton";
 import { Titulo } from "@/components/base/Titulo";
@@ -139,25 +138,29 @@ export function ObservacionFormulario() {
       if (modoEdicion) {
         console.log("[observaciones: observacion-agregar] Editando observación:", { pacienteID, titulo, fecha_observacion, hora_observacion, descripcion });
         {
-          const res = await api.put("/observaciones/" + pacienteID + "/" + id + "/", {titulo: titulo,
-                                                                   fecha_observacion: fecha_observacion,
-                                                                   hora_observacion: hora_observacion,
-                                                                   descripcion: descripcion},
-                                                                  {timeout: 5000})
+          const res = await api.put("/observaciones/" + pacienteID + "/" + id + "/", {
+            titulo: titulo,
+            fecha_observacion: fecha_observacion,
+            hora_observacion: hora_observacion,
+            descripcion: descripcion
+          }, {timeout: 5000})
           console.log("[observaciones: observacion-agregar] Respuesta:", res.data);
           router.push(`/cuidador/${paciente}/observaciones?success=1`);
         }
       } else {
-        console.log("[observaciones: observacion-agregar] Creando observación:", {titulo: titulo,
-                                                                      fecha_observacion: fecha_observacion.toISOString(),
-                                                                      hora_observacion: hora_observacion ? hora_observacion.toISOString() : null,
-                                                                      descripcion: descripcion});
+        console.log("[observaciones: observacion-agregar] Creando observación:", {
+          titulo: titulo,
+          fecha_observacion: fecha_observacion.toISOString(),
+          hora_observacion: hora_observacion ? hora_observacion.toISOString() : null,
+          descripcion: descripcion
+        });
         {
-          const res = await api.post(`/observaciones/${pacienteID}`, {titulo: titulo,
-                                                                      fecha_observacion: fecha_observacion?.toISOString(),
-                                                                      hora_observacion: hora_observacion ? hora_observacion.toISOString() : null,
-                                                                      descripcion: descripcion},
-                                                                      {timeout: 5000})
+          const res = await api.post(`/observaciones/${pacienteID}`, {
+            titulo: titulo,
+            fecha_observacion: fecha_observacion?.toISOString(),
+            hora_observacion: hora_observacion ? hora_observacion.toISOString() : null,
+            descripcion: descripcion
+          }, {timeout: 5000})
           console.log("[observaciones: observacion-agregar] Respuesta:", res.data);
           router.push(`/cuidador/${paciente}/observaciones?success=1`);
         }
@@ -179,63 +182,68 @@ export function ObservacionFormulario() {
   //VISTA
   return (
     <DescartarCambiosContext.Provider value={{ handleDescartarCambios }}>
-      <KeyboardAwareScrollView
-        className="flex-1" 
-        contentContainerStyle={{ flexGrow: 1, padding: 8 }} 
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={24}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={130}
       >
-        <Titulo> 
-          {modoEdicion ? 'Editar observación' : 'Agregar observación'}
-        </Titulo>
-        {isLoading ? (
-          <IndicadorCarga/>
-        ) : (
-          <View className="gap-2">
-            <FormularioCampo
-              label={"Título"}
-              value={titulo}
-              onChangeText={setTitulo}
-              placeholder={"Ingresa un título"}
-              maxLength={255}
-              asterisco={true}
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 2, paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Titulo> 
+            {modoEdicion ? 'Editar observación' : 'Agregar observación'}
+          </Titulo>
+          {isLoading ? (
+            <IndicadorCarga/>
+          ) : (
+            <View className="gap-2">
+              <FormularioCampo
+                label={"Título"}
+                value={titulo}
+                onChangeText={setTitulo}
+                placeholder={"Ingresa un título"}
+                maxLength={255}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampoFecha
+                fecha={fecha_observacion}
+                setFecha={setFecha_observacion}
+                label={"Fecha"}
+                placeholder={"Selecciona una fecha..."}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampoHora
+                hora={hora_observacion}
+                setHora={setHora_observacion}
+                label={"Hora"}
+                placeholder={"Selecciona una hora..."}
+                asterisco={false}
+                tipo={2}
+              />
+              <FormularioCampo
+                label={"Descripción"}
+                value={descripcion}
+                onChangeText={setDescripcion}    
+                placeholder={"Ingresa una descripción"}
+                multiline
+                maxLength={4000}
+                asterisco={true}
               tipo={2}
-            />
-            <FormularioCampoFecha
-              fecha={fecha_observacion}
-              setFecha={setFecha_observacion}
-              label={"Fecha"}
-              placeholder={"Selecciona una fecha..."}
-              asterisco={true}
-              tipo={2}
-            />
-            <FormularioCampoHora
-              hora={hora_observacion}
-              setHora={setHora_observacion}
-              label={"Hora"}
-              placeholder={"Selecciona una hora..."}
-              asterisco={false}
-              tipo={2}
-            />
-            <FormularioCampo
-              label={"Descripción"}
-              value={descripcion}
-              onChangeText={setDescripcion}    
-              placeholder={"Ingresa una descripción"}
-              multiline
-              maxLength={4000}
-              asterisco={true}
-            tipo={2}
-            />
-            <Boton
-              texto="Guardar"
-              onPress={handleGuardar}
-              isLoading={isLoadingBoton}
-              tipo={3}
-            />
-          </View>
-        )}
-      </KeyboardAwareScrollView>
+              />
+              <Boton
+                texto="Guardar"
+                onPress={handleGuardar}
+                isLoading={isLoadingBoton}
+                tipo={3}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </DescartarCambiosContext.Provider>
   );
 

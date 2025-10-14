@@ -1,9 +1,10 @@
-import { Dimensions, Modal, Pressable, ScrollView, View } from "react-native";
-import { colors } from "@/constants/colors";
 import { BotonEsquinaSuperior } from "@/components/base/Boton";
+import { colors } from "@/constants/colors";
+import { Dimensions, Modal, Pressable, ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
+const screenWidth = Dimensions.get("screen").width;
+const screenHeight = Dimensions.get("screen").height;
 const modalHeight = screenHeight * 0.9;
 
 interface CustomModalProps {
@@ -42,7 +43,7 @@ export function CustomModal({
         style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.40)" }}
         onPress={onClose}
       />
-      <View
+      <SafeAreaView
         style={{
           position: "absolute",
           left: 
@@ -111,6 +112,7 @@ export function CustomModal({
           fondoBoton={fondoColor}
           iconName={"close"}
           color={iconoColor}
+          top={tipo === "-x" ? 30 : 10}
           tipo={
             tipo === "-x" ? "izquierda" :
             tipo === "x" ? "derecha" :
@@ -124,7 +126,7 @@ export function CustomModal({
         <View className="flex-1 p-4 mt-8">
           {children}
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );} else {
     return (

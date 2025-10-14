@@ -92,8 +92,10 @@ const ActividadItem = ({
       icono={<ActividadIcono/>}
       expandidoContenido={
         <View className="gap-4">
+          {/* DESCRIPCIÓN */}
           {actividad.descripcion?.length > 0 && (<TextoBloque texto={actividad.descripcion}/>)}
           <View className="gap-2">
+            {/* OPCIONES */}
             <TituloSeccion children={"Opciones:"}/>
             <View className="flex-row flex-wrap justify-between gap-2" style={{ flexShrink: 1}}>
               <BotonEditar onPress={handleEditar}/>
@@ -214,12 +216,14 @@ export default function Actividades() {
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo
         onPressRecargar={fetchActividades}
         onBusquedaChange={setBusqueda}
       >
         Actividades
       </Titulo>
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ) : error ? (
@@ -236,7 +240,9 @@ export default function Actividades() {
           setToast={setToast}
         />
       )}
+      {/* BOTÓN FLOTANTE */}
       <BotonAgregar onPress={handleAgregarActividad}/>
+      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}

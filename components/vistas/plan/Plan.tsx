@@ -129,8 +129,10 @@ const ObjetivoGeneralItem = ({
           <View className="gap-4">
             {objetivoGeneral.descripcion && objetivoGeneral.descripcion.length > 0 && (<TextoBloque texto={objetivoGeneral.descripcion}/>)}
             <View className="gap-2">
+              {/* OPCIONES */}
               <TituloSeccion children={"Opciones:"}/>
               <View className="gap-2">
+                {/* OBJETIVOS ESPECÍFICOS */}
                 <TarjetaSelector
                   titulo={"Ver objetivos específicos"}
                   onPress={() => handleObjetivosEspecificos(true)}
@@ -140,6 +142,7 @@ const ObjetivoGeneralItem = ({
                   tarjetaEstilo={"bg-primary p-2"}
                   tituloEstilo={"text-white text-base font-semibold"}
                 />
+                {/* ACCIONES */}
                 <View className="flex-row flex-wrap justify-between gap-1" style={{ flexShrink: 1 }}>
                   {isProfesional ? (
                     <>
@@ -334,6 +337,7 @@ export function Plan() {
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo
         subtitulo={"Objetivos generales"}
         onPressRecargar={() => fetchObjetivosGenerales(true)}
@@ -341,6 +345,7 @@ export function Plan() {
       >
         Plan de trabajo
       </Titulo>
+      {/* PESTAÑAS */}
       <View className="flex-row justify-around bg-lightgrey rounded-xl my-2 ">
         <BotonTab
           label={"En progreso"}
@@ -353,6 +358,7 @@ export function Plan() {
           onPress={() => setSelectedTab("completados")}
         />
       </View>
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ) : error ? (
@@ -399,8 +405,10 @@ export function Plan() {
           ) : null}
         </>
       )}
+      {/* BOTONES FLOTANTES */}
       {isProfesional ? <BotonAgregar onPress={handleAgregarObjetivoGeneral} /> : null}
       <BotonProgreso onPress={handleProgreso}/>
+      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}

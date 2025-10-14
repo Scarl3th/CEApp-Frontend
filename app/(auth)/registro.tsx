@@ -36,6 +36,7 @@ export default function Registro() {
     try {
       setIsLoadingBoton(true);
       console.log("[registro] Comunicándose con la base de datos...");
+      console.log("[registro] URL:", `${API_BASE_URL}/registro/`);
       const respuesta_registro = await axios.post(`${API_BASE_URL}/registro/`, {
         //En el backend hay un "serializer" por cada consulta
         //El serializer del backend te dice la estructura del JSON a mandar
@@ -53,7 +54,6 @@ export default function Registro() {
       try {
         const respuesta_login = await login(correo, contrasena);
         console.log("[registro] Inicio de sesión exitoso...");
-        Alert.alert("Inicio de sesión exitoso.");
         router.replace("/"); //Redireccionar a index
       }
       //ERROR AL INICIAR SESIÓN

@@ -1,20 +1,20 @@
-import { BotonAgregar, BotonDescargar, BotonDetalles, BotonVer } from "@/components/base/Boton";
-import { formatearFechaDDMMYYYY } from "@/components/base/FormatearFecha";
-import { IndicadorCarga } from "@/components/base/IndicadorCarga";
+import * as FileSystem from 'expo-file-system';
+import React, { useEffect, useState } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Alert, FlatList, Pressable, View } from "react-native";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import { EncodingType, readAsStringAsync, StorageAccessFramework, writeAsStringAsync } from 'expo-file-system/legacy';
+import { useAuth } from "@/context/auth";
+import { Icons } from "@/constants/icons";
+import { colors } from "@/constants/colors";
+import { CustomToast } from "@/components/base/Toast";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
-import { CustomToast } from "@/components/base/Toast";
+import { IndicadorCarga } from "@/components/base/IndicadorCarga";
+import { formatearFechaDDMMYYYY } from "@/components/base/FormatearFecha";
 import { EspacioUsadoBarra } from "@/components/vistas/informes/Componentes";
-import { colors } from "@/constants/colors";
-import { Icons } from "@/constants/icons";
-import { useAuth } from "@/context/auth";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import * as FileSystem from 'expo-file-system';
-import { EncodingType, readAsStringAsync, StorageAccessFramework, writeAsStringAsync } from 'expo-file-system/legacy';
-import { usePathname, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Alert, FlatList, Pressable, View } from "react-native";
+import { BotonAgregar, BotonDescargar, BotonDetalles, BotonVer } from "@/components/base/Boton";
 
 //INFORME
 interface Informe {
@@ -26,9 +26,9 @@ interface Informe {
 }
 
 //ICONO: INFORME
-export function InformeIcono(
-  { onPress }: { onPress: () => void }
-) {
+export function InformeIcono({
+  onPress
+}: { onPress: () => void }) {
   return (
     <Pressable onPress={onPress}>
       {({ pressed }) => (
@@ -61,10 +61,13 @@ interface InformeItemProps {
     } | null>
   >;
 }
-const InformeItem = ({ informe, onChange, setToast }: InformeItemProps) => {
+const InformeItem = ({
+  informe,
+  onChange,
+  setToast
+}: InformeItemProps) => {
   
   const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
-  const isProfesional = user?.role === "profesional";
   const router = useRouter();
   const ruta = decodeURIComponent(usePathname());
   if (!ruta) return null;
@@ -89,29 +92,23 @@ const InformeItem = ({ informe, onChange, setToast }: InformeItemProps) => {
 
   //HANDLE: DESCARGAR
   const handleDescargar = async () => {
-    
     setIsDescargando(true);
     console.log("[informes] Descargando informe...");
-    
     try {
-
       //Preguntamos por la url al backend
       const api = createApi(authToken, refreshToken, setAuthToken);
       const res = await api.get(`/informes/${pacienteID}/${informe.id}`);
       console.log(res.data);
       const url = res.data.url;
       const fileName = `${informe.titulo}.pdf`;
-
       // Ruta en caché
       const destination = new FileSystem.Directory(FileSystem.Paths.cache,"informes");
       if(!destination.exists){
         destination.create();
       }
-      
       // Descargar el archivo en caché
       const output = await FileSystem.File.downloadFileAsync(url, destination, {idempotent: true});
       console.log(`[informes] Archivo descargado en ${output.uri}`);
-
       // Selección de carpeta y petición de permisos
       const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
       if (!permissions.granted) {
@@ -119,7 +116,6 @@ const InformeItem = ({ informe, onChange, setToast }: InformeItemProps) => {
       } else {
         console.log(permissions.directoryUri);
       }
-
       //Guardar en carpeta seleccionada
       const fileString = await readAsStringAsync(output.uri, { encoding: EncodingType.Base64 });
       await StorageAccessFramework.createFileAsync(permissions.directoryUri, fileName, 'application/pdf')
@@ -129,7 +125,6 @@ const InformeItem = ({ informe, onChange, setToast }: InformeItemProps) => {
             })
       //setToast({ text1: "Informe descargado correctamente", type: "success" });
       //Saqué el toast porque se veía detrás del modal, el alert se sobrepone y queda mejor
-
     } catch (error) {
       console.error(error);
       Alert.alert("Error", `El archivo no pudo ser descargado`);
@@ -192,15 +187,14 @@ export function InformesLista({ informes, onChange, setToast }: InformesListaPro
 export function Informes() {
 
   const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
-  const isProfesional = user?.role === "profesional";
   const router = useRouter();
   const ruta = decodeURIComponent(usePathname());
   if (!ruta) return null;
   const ruta_partes = ruta.split("/").filter(Boolean);
   const rol = ruta_partes[0];
-  const paciente = ruta_partes[1];
-  const [pacienteID] = paciente.split("-");
-
+  const { paciente, success } = useLocalSearchParams();
+  const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
+  const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
   const espacioMaximo = 500 * 1024 * 1024;
 
   //ESTADOS
@@ -218,6 +212,12 @@ export function Informes() {
   useEffect(() => {
     fetchEspacioUsado();
   }, []);
+
+  useEffect(() => {
+    if (success) {
+      setToast({ text1: "Informe guardado exitosamente.", type: "success" });
+    }
+  }, [success]);
 
   //FETCH: ESPACIO
   const fetchEspacioUsado = async () => {
@@ -239,7 +239,6 @@ export function Informes() {
       const api = createApi(authToken, refreshToken, setAuthToken);
       console.log("[informes] Obteniendo informes de la base de datos...");
       const res = await api.get("/informes/" + pacienteID + "/metadata/");
-      //console.log(res.data);
       setInformes(res.data);
       setError(false);
     } catch(err) {
@@ -268,12 +267,14 @@ export function Informes() {
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo
         onPressRecargar={fetchInformes}
         onBusquedaChange={setBusqueda}
       >
         Informes
       </Titulo>
+      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga/>
       ) : error ? (
@@ -282,7 +283,7 @@ export function Informes() {
           onPressRecargar={fetchInformes}
         />
       ) : informes.length === 0 ? (
-        <MensajeVacio mensaje={`Aún no tienes informes.\n¡Comienza a planificar el trabajo del paciente usando el botón ＋!`}/>
+        <MensajeVacio mensaje={`No se encontraron informes.\n¡Comienza a planificar el trabajo del paciente usando el botón ＋!`}/>
       ) : (
         <>
           <EspacioUsadoBarra
@@ -296,7 +297,9 @@ export function Informes() {
           />
         </>
       )}
+      {/* BOTÓN FLOTANTE */}
       <BotonAgregar onPress={handleAgregarInforme}/>
+      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}

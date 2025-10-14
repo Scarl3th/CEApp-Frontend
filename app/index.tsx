@@ -6,7 +6,6 @@ import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 export default function Index() {
 
   const { user } = useAuth();
-
   const router = useRouter();
   
   //ESTADOS
@@ -23,10 +22,10 @@ export default function Index() {
     if (user) {
       if (user.role === "profesional") {
         console.log("[index] Redirigiendo a profesional...");
-        router.replace("/profesional");
+        router.replace("/profesional?loginSuccess=1");
       } else if (user.role === "cuidador") {
         console.log("[index] Redirigiendo a cuidador...");
-        router.replace("/cuidador");
+        router.replace("/cuidador?loginSuccess=1");
       } else {
         console.log("[index] Rol no reconocido:", user.role);
         router.replace("/login");

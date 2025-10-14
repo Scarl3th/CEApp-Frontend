@@ -270,12 +270,14 @@ export function Bitacora() {
   //VISTA
   return (
     <View className="flex-1">
+      {/* TÍTULO */}
       <Titulo
         onPressRecargar={() => fetchEntradas(true)}
         onBusquedaChange={setBusqueda}
       >
         Bitácora
       </Titulo>
+      {/* CUERPO */}
       <View className="flex-1">
         {isLoading ? (
           <IndicadorCarga/>
@@ -291,7 +293,9 @@ export function Bitacora() {
           <EntradasLista entradas={entradasBusqueda}/>
         )}
       </View>
+      {/* BOTÓN FLOTANTE */}
       <BotonAgregar onPress={handleAgregar}/>
+      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}
