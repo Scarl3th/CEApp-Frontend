@@ -239,15 +239,27 @@ export function Informes() {
       const api = createApi(authToken, refreshToken, setAuthToken);
       console.log("[informes] Obteniendo informes de la base de datos...");
       const res = await api.get("/informes/" + pacienteID + "/metadata/");
-      setInformes(res.data);
+
+      // Ordenar por fecha descendente (más nuevo primero)
+      const informesOrdenados = res.data.sort((a, b) => {
+        const [diaA, mesA, anioA] = a.fecha_creacion.split("/").map(Number);
+        const [diaB, mesB, anioB] = b.fecha_creacion.split("/").map(Number);
+        const fechaA = new Date(anioA, mesA - 1, diaA);
+        const fechaB = new Date(anioB, mesB - 1, diaB);
+        return fechaB.getTime() - fechaA.getTime(); // descendente
+      });
+
+      setInformes(informesOrdenados);
+      console.log(informesOrdenados);
       setError(false);
-    } catch(err) {
+    } catch (err) {
       console.log("[informes] Error:", err);
       setError(true);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+
 
   //HANDLE: AGREGAR-OBSERVACION
   const handleAgregarInforme = () => {

@@ -126,7 +126,7 @@ export function InicioPaciente() {
             />
             {isProfesional ? (
               <TarjetaInicio
-                onPress={() => router.replace(`/${rol}/${paciente}/plan`)}
+                onPress={() => router.replace(`/${rol}/${paciente}/bitacora`)}
                 titulo={Icons["bitacora"].label}
                 subtitulo={[Icons["bitacora"].description]}
                 icono={Icons["bitacora"].iconName}
