@@ -1,23 +1,23 @@
 export const colors = {
   //APP
-  light:"#FCFCFC",
-  primary: "#114F80",
-  secondary: "#F26052",
+  light:"#FCFCFC", //Background
+  primary: "#114F80", //Header, Footer, Menu, Tab
+  secondary: "#F26052", //Buttons (llamada a la acción)
   //NEUTRAL
-  white: "#FFFFFF",
-  black: "#000000",
-  lightgrey: "#F3F4F6",
-  lightmediumgrey: "#DDDEDF",
+  white: "#FFFFFF", //Text Input Background, Icons (above primary color)
+  black: "#000000", //Primary Text, Icons (above light color)
+  lightgrey: "#F3F4F6", //Cards (Tarjetas)
+  lightmediumgrey: "#DDDEDF", //Pressed
   mediumlightgrey: "#C6C7C8",
-  mediumgrey: "#999999",
+  mediumgrey: "#999999", //Border
   mediumdarkishgrey: "#777777",
-  mediumdarkgrey: "#555555",
+  mediumdarkgrey: "#555555", //Secondary Text
   //GREEN
   lightgreen: "#D2F7CD",
-  mediumgreen: "#125C0A",
+  mediumgreen: "#125C0A", //Success
   //RED
   lightred: "#FFE6E6",
-  mediumred: "#E53935",
+  mediumred: "#E53935", //Error
   //YELLOW
   lightyellow: "#FEF9C3",
   mediumyellow: "#FFCC00",

@@ -1,13 +1,9 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
-import { Icons } from "@/constants/icons";
-import { colors } from "@/constants/colors";
 import { CustomToast } from "@/components/base/Toast";
-import { TextoBloque } from "@/components/base/TextoBloque";
-import { TarjetaExpandible } from "@/components/base/Tarjeta";
+import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
@@ -23,15 +19,6 @@ interface Observacion {
   descripcion: string;
   fecha_creacion: Date;
   fecha_modificacion?: Date;
-}
-
-//ICONO: OBSERVACION
-export function ObservacionIcono() {
-  return (
-    <View className="rounded-full justify-center items-center">
-      <Ionicons name={Icons["observacion"].iconName} size={30} color={colors.white}/>
-    </View>
-  );
 }
 
 //ITEM: OBSERVACION
@@ -95,41 +82,37 @@ const ObservacionItem = ({
 
   //VISTA
   return (
-    <TarjetaExpandible
+    <TarjetaTresPuntos
       titulo={observacion.titulo}
       subtitulo={
         observacion.hora_observacion
           ? `Fecha: ${formatearFechaString(observacion.fecha_observacion, { day: "numeric", month: "long", year: "numeric"  })}, ${formatearFechaString(observacion.hora_observacion, { hour: "2-digit", minute: "2-digit", hour12: false })}`
           : `Fecha: ${formatearFechaString(observacion.fecha_observacion, { day: "numeric", month: "long", year: "numeric"  })}`
       }
-      icono={<ObservacionIcono/>}
-      expandidoContenido={
-        <View className="gap-4">
-          {/* DESCRIPCIÓN */}
-          {observacion.descripcion?.length > 0 && (<TextoBloque texto={observacion.descripcion}/>)}
-          <View className="gap-2">
-            {/* OPCIONES */}
-            <TituloSeccion children={"Opciones:"}/>
-            <View className="flex-row flex-wrap justify-between gap-2" style={{ flexShrink: 1}}>
-              {!isProfesional && <BotonEditar onPress={handleEditar}/>}
-              {!isProfesional && <BotonEliminar onPress={handleEliminar}/>}
-              <BotonDetalles tipoModal={"expandible"}>
-                <View className="gap-1">
-                  <TituloSeccion
-                    children={"Creado:"}
-                    respuesta={`${formatearFechaString(observacion.fecha_creacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
-                  />
-                  {observacion.fecha_modificacion && (
-                    <TituloSeccion
-                      children={"Última modificación:"}
-                      respuesta={`${formatearFechaString(observacion.fecha_modificacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
-                    />
-                  )}
-                </View>
-              </BotonDetalles>
+      descripcion={
+        observacion.descripcion?.length > 0
+          ? observacion.descripcion
+          : undefined
+      }
+      tresPuntosContenido={
+        <>
+          {!isProfesional && <BotonEditar tipo={"horizontal"} onPress={handleEditar}/>}
+          {!isProfesional && <BotonEliminar tipo={"horizontal"} onPress={handleEliminar}/>}
+          <BotonDetalles tipo={"horizontal"} tipoModal={"expandible"}>
+            <View className="gap-1">
+              <TituloSeccion
+                children={"Creado:"}
+                respuesta={`${formatearFechaString(observacion.fecha_creacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
+               />
+              {observacion.fecha_modificacion && (
+                <TituloSeccion
+                  children={"Última modificación:"}
+                  respuesta={`${formatearFechaString(observacion.fecha_modificacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
+                />
+              )}
             </View>
-          </View>
-        </View>
+          </BotonDetalles>
+        </>
       }
     />
   );

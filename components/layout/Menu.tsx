@@ -39,13 +39,11 @@ export function Menu({ visible, onClose, paciente }) {
   }, [visible, rutaPendiente, router]);
 
   const items = [
-    { route: `/plan/progreso`, iconName: Icons["progreso"].iconName, label: Icons["progreso"].label, roles: ["profesional","cuidador"] },
-    { route: `/observaciones`, iconName: Icons["observaciones"].iconName, label: Icons["observaciones"].label, roles: ["profesional","cuidador"] },
-    { route: `/medicamentos`, iconName: Icons["medicamentos"].iconName, label: Icons["medicamentos"].label, roles: ["profesional","cuidador"] },
-    { route: `/calendario`, iconName: Icons["calendario"].iconName, label: Icons["calendario"].label, roles: ["profesional"] },
-    { route: `/informes`, iconName: Icons["informes"].iconName, label: Icons["informes"].label, roles: ["profesional","cuidador"] },
-    { route: `/equipo`, iconName: Icons["equipo"].iconName, label: Icons["equipo"].label, roles: ["profesional","cuidador"] },
-    { route: `/actividades`, iconName: Icons["actividades"].iconName, label: Icons["actividades"].label, roles: ["profesional"] },
+    { route: `plan/progreso`, iconName: Icons["progreso"].iconName, label: Icons["progreso"].label, roles: ["profesional","cuidador"] },
+    { route: `observaciones`, iconName: Icons["observaciones"].iconName, label: Icons["observaciones"].label, roles: ["profesional","cuidador"] },
+    { route: `medicamentos`, iconName: Icons["medicamentos"].iconName, label: Icons["medicamentos"].label, roles: ["profesional","cuidador"] },
+    { route: `informes`, iconName: Icons["informes"].iconName, label: Icons["informes"].label, roles: ["profesional","cuidador"] },
+    { route: `equipo`, iconName: Icons["equipo"].iconName, label: Icons["equipo"].label, roles: ["profesional","cuidador"] },
   ];
 
   //VISTA
@@ -72,6 +70,32 @@ export function Menu({ visible, onClose, paciente }) {
 
         <View className="gap-4">
 
+          <TarjetaMenu
+            titulo={Icons["calendario"].label}
+            fondoColor={colors.lightblue}
+            textoColor={colors.black}
+            iconoColor={colors.mediumblue}
+            iconoNombre={Icons["calendario"].iconName}
+            onPress={() => {
+              setRutaPendiente(`/${rol}/${paciente}/calendario`);
+              onClose();
+            }}
+          />
+
+          {isProfesional && (
+            <TarjetaMenu
+              titulo={Icons["actividades"].label}
+              fondoColor={colors.lightblue}
+              textoColor={colors.black}
+              iconoColor={colors.mediumblue}
+              iconoNombre={Icons["actividades"].iconName}
+              onPress={() => {
+                setRutaPendiente(`/${rol}/${paciente}/actividades`);
+                onClose();
+              }}
+            />
+          )}
+
           {items
             .filter(item => item.roles.includes(user.role))
             .map(item => (
@@ -80,7 +104,7 @@ export function Menu({ visible, onClose, paciente }) {
                 titulo={item.label}
                 iconoNombre={item.iconName}
                 onPress={() => {
-                  setRutaPendiente(`/${rol}/${paciente}${item.route}`);
+                  setRutaPendiente(`/${rol}/${paciente}/${item.route}`);
                   onClose();
                 }}
               />

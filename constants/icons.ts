@@ -60,7 +60,7 @@ export const Icons: Record<
   string,
   { iconName: IconType; label: string, description: string}
 > = {
-  actividades: { iconName: "play-circle-outline", label: "Actividades", description: "Registro de actividades terapéuticas" },
+  actividades: { iconName: "play-circle-outline", label: "Tus actividades", description: "Registro de actividades terapéuticas" },
   actividad: { iconName: "play-circle", label: "Actividad", description: "" },
   actualizaciones: { iconName: "notifications-circle-outline", label: "Actualizaciones", description: "" },
   atras: { iconName: "arrow-back", label: "Atrás", description: "" },
@@ -68,7 +68,7 @@ export const Icons: Record<
   bitacora: { iconName: "clipboard-outline", label: "Bitácora", description: "Registro de sesiones terapéuticas" },
   busqueda: { iconName: "search", label: "Búsqueda", description: "" },
   busqueda_circulo: { iconName: "search-circle", label: "Búsqueda", description: "" },
-  calendario: { iconName: "calendar-outline", label: "Calendario", description: "Visualiza y gestiona eventos" },
+  calendario: { iconName: "calendar-outline", label: "Tu calendario", description: "Visualiza y gestiona eventos" },
   cerrar: { iconName: "close", label: "Cerrar", description: "" },
   cerrar_sesion: { iconName: "log-out-outline", label: "Cerrar sesión", description: "" },
   chat: { iconName: "chatbubble-ellipses-outline", label: "Chat", description: "Comunicación con otros profesionales" },

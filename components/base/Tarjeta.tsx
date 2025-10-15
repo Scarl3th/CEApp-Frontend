@@ -41,7 +41,7 @@ export function TarjetaExpandible({
           <View
             className="flex-row items-center"
             style={{
-              backgroundColor: pressed ? colors.mediumlightgrey : colors.lightgrey,
+              backgroundColor: pressed ? colors.lightmediumgrey : colors.lightgrey,
               
             }}
           >
@@ -114,7 +114,7 @@ export function TarjetaMenu({
     <Pressable onPress={onPress} className="rounded-lg">
       {({ pressed }) => (
         <View
-          className={"flex-row items-center rounded-lg px-6 py-2"}
+          className={"flex-row items-center rounded-lg px-6 py-3"}
           style={{
             backgroundColor: pressed ? colors.mediumlightgrey : fondoColor,
           }}
@@ -229,92 +229,148 @@ export function MensajeCard({ titulo, mensajes }: MensajeCardProps) {
   );
 };
 
+//TARJETA: TRES PUNTOS
 interface TarjetaTresPuntosProps {
-  onPress?: () => void;
   tarjetaColor?: string;
   tresPuntosColor?: string;
-  antetitulo?: string;
   titulo: string;
-  tituloTamano?: string;
   subtitulo?: string;
+  subtituloAlternativo?: React.ReactNode;
+  descripcion?: string;
   icono?: React.ReactNode;
   iconoFondoColor?: string;
   tipoModal?: "expandible";
   tresPuntosContenido?: React.ReactNode;
 }
 export function TarjetaTresPuntos({
-  onPress,
   tarjetaColor = colors.lightgrey,
   tresPuntosColor = colors.black,
-  antetitulo,
   titulo,
-  tituloTamano = "text-lg",
   subtitulo,
+  subtituloAlternativo,
+  descripcion,
   icono,
   iconoFondoColor = colors.primary,
   tipoModal = "expandible",
   tresPuntosContenido,
 }: TarjetaTresPuntosProps) {
+  const limiteCaracteres = 44;
   const [open, setOpen] = useState(false);
+  const [expandido, setExpandido] = useState(false);
+  const necesitaVerMas = descripcion && (descripcion.length > limiteCaracteres || descripcion.split("\n").length > 1);
   return (
     <>
-      <Pressable onPress={onPress} className="rounded-lg my-2">
-        {({ pressed }) => (
+      <View
+        className="rounded-lg my-2 mx-0.5 flex-row items-center"
+        style={{
+          backgroundColor: tarjetaColor,
+          shadowColor: colors.black,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 3.5,
+          elevation: 2,
+        }}
+      >
+        {/* ICONO IZQUIERDO */}
+        {icono ? (
           <View
-            className={"rounded-lg flex-row items-center"}
+            className="rounded-tl-lg rounded-bl-lg p-2 flex items-center justify-center"
             style={{
-              backgroundColor: onPress && pressed ? colors.mediumlightgrey : tarjetaColor,
-              shadowColor: colors.black,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.15,
-              shadowRadius: 3.5,
-              elevation: 2,
+              backgroundColor: iconoFondoColor,
+              alignSelf: "stretch",
             }}
           >
-            {icono && (
+            {icono}
+          </View>
+        ) : (
+          <View
+            className="rounded-tl-lg rounded-bl-lg p-2 flex items-center justify-center"
+            style={{
+              backgroundColor: iconoFondoColor,
+              alignSelf: "stretch",
+            }}
+          />
+        )}
+        {/* CONTENIDO PRINCIPAL */}
+        <View className="flex-1 p-4 gap-1 flex-column items-left justify-center">
+          {/* TÍTULO */}
+          <Text className={`text-black font-bold text-lg`}>{titulo}</Text>
+          {/* SUBTÍTULO */}
+          {subtitulo && (
+            <Text className="text-mediumdarkgrey text-sm">{subtitulo}</Text>
+          )}
+          {/* SUBTITULO ALTERNATIVO */}
+          {subtituloAlternativo && (
+            <>
+              {subtituloAlternativo}
+            </>
+          )}
+          {/* DESCRIPCIÓN */}
+          {descripcion && (
+            <View className="bg-light rounded-lg p-2 mt-1">
+              <Text
+                className="text-black text-base"
+                numberOfLines={expandido ? undefined : 1}
+                ellipsizeMode="tail"
+              >
+                {expandido ? descripcion : descripcion.length > limiteCaracteres ? descripcion.slice(0, limiteCaracteres) + "…" : descripcion}
+              </Text>
+              {necesitaVerMas && (
+                <Text
+                  onPress={() => setExpandido(!expandido)}
+                  className="text-mediumdarkgrey text-sm text-right"
+                  style={{
+                    textDecorationLine: "underline"
+                  }}
+                >
+                  {expandido ? "ver menos" : "ver más"}
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
+        {/* TRES PUNTOS */}
+        {tresPuntosContenido ? (
+          <Pressable
+            onPress={() => setOpen(true)}
+            className="pr-2 pt-2"
+          >
+            {({ pressed: iconoPressed }) => (
               <View
-               className="rounded-tl-lg rounded-bl-lg p-2 flex items-center justify-center"
+                className="rounded-full p-2"
                 style={{
-                  backgroundColor: onPress && pressed ? colors.mediumgrey : iconoFondoColor,
-                  alignSelf: "stretch",
+                  backgroundColor: iconoPressed
+                    ? colors.lightmediumgrey
+                    : tarjetaColor,
                 }}
               >
-                {icono}
+                <Ionicons
+                  name={Icons["tresPuntos"].iconName}
+                  size={24}
+                  color={tresPuntosColor}
+                />
               </View>
             )}
-            <View className="flex-1 p-4 gap-1 flex-column items-left justify-center">
-              {antetitulo && (<Text className={`text-mediumdarkgrey text-sm`}>{antetitulo}</Text>)}
-              <Text className={`text-black font-bold ${tituloTamano}`}>{titulo}</Text>
-              {subtitulo && (<Text className={`text-mediumdarkgrey text-sm`}>{subtitulo}</Text>)}
-            </View>
-            <Pressable onPress={() => setOpen(true)}>
-              {({ pressed: iconoPressed }) => (
-                <View
-                  className="rounded-full p-2"
-                  style={{ backgroundColor: pressed || iconoPressed ? colors.mediumlightgrey : tarjetaColor }}
-                >
-                  <Ionicons name={Icons["tresPuntos"].iconName} size={24} color={tresPuntosColor}/>
-                </View>
-              )}
-            </Pressable>
-          </View>
-        )}
-      </Pressable>
+          </Pressable>
+        ) : null}
+      </View>
+      {/* MODAL */}
       {tresPuntosContenido && (
-        <CustomModal visible={open} onClose={() => setOpen(false)} tipo={tipoModal}>
+        <CustomModal
+          visible={open}
+          onClose={() => setOpen(false)}
+          tipo={tipoModal}
+        >
           <View className="flex-1 p-2 gap-4 justify-center">
-            <Text className="text-primary text-xl font-bold">
-              Opciones
-            </Text>
-            <ScrollView>
-              {tresPuntosContenido}
-            </ScrollView>
+            <Text className="text-primary text-xl font-bold">Opciones</Text>
+            <ScrollView>{tresPuntosContenido}</ScrollView>
           </View>
         </CustomModal>
       )}
     </>
   );
 }
+
 
 interface TarjetaOpcionProps {
   onPress?: () => void;

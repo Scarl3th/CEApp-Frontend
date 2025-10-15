@@ -412,7 +412,12 @@ export function EventoFormulario() {
                   label={"Día del mes"}
                   placeholder={"Ingresa un día del 1 al 31"}
                   value={diaMensual ? diaMensual.toString() : ""}
-                  onChangeText={(text) => setDiaMensual(Number(text))}
+                  onChangeText={(text) => {
+                    let numero = Number(text);
+                    if (numero > 31) numero = 31;
+                    if (numero < 1) numero = undefined; // opcional: impedir números menores a 1
+                    setDiaMensual(numero);
+                  }}
                   keyboardType={"numeric"}
                   maxLength={2}
                   asterisco={true}
@@ -420,8 +425,8 @@ export function EventoFormulario() {
                 />
               )}
               <FormularioCampoFechaFutura
-                label={`Fecha${tipo != "unico" ? " de inicio" : ""}`}
-                placeholder={`Selecciona una fecha${tipo != "unico" ? " de inicio" : ""}`}
+                label={`Fecha${tipo == "semanal" || tipo == "mensual" ? " de inicio" : ""}`}
+                placeholder={`Selecciona una fecha${tipo == "semanal" || tipo == "mensual" ? " de inicio" : ""}`}
                 fecha={fecha}
                 setFecha={setFecha}
                 asterisco={true}

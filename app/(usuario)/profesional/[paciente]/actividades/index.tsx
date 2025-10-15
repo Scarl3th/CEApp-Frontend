@@ -6,8 +6,7 @@ import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { CustomToast } from "@/components/base/Toast";
-import { TextoBloque } from "@/components/base/TextoBloque";
-import { TarjetaExpandible } from "@/components/base/Tarjeta";
+import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
@@ -21,15 +20,6 @@ interface Actividad {
   descripcion: string;
   fecha_creacion: Date;
   fecha_modificacion?: Date;
-}
-
-//ICONO: ACTIVIDAD
-export function ActividadIcono() {
-  return (
-    <View className="rounded-full justify-center items-center">
-      <Ionicons name={Icons["actividad"].iconName} size={30} color={colors.white}/>
-    </View>
-  );
 }
 
 //ITEM: ACTIVIDAD
@@ -87,36 +77,32 @@ const ActividadItem = ({
 
   //VISTA
   return (
-    <TarjetaExpandible
+    <TarjetaTresPuntos
       titulo={actividad.titulo}
-      icono={<ActividadIcono/>}
-      expandidoContenido={
-        <View className="gap-4">
-          {/* DESCRIPCIÓN */}
-          {actividad.descripcion?.length > 0 && (<TextoBloque texto={actividad.descripcion}/>)}
-          <View className="gap-2">
-            {/* OPCIONES */}
-            <TituloSeccion children={"Opciones:"}/>
-            <View className="flex-row flex-wrap justify-between gap-2" style={{ flexShrink: 1}}>
-              <BotonEditar onPress={handleEditar}/>
-              <BotonEliminar onPress={handleEliminar}/>
-              <BotonDetalles tipo={"vertical"} tipoModal={"expandible"}>
-                <View className="gap-1">
-                  <TituloSeccion
-                    children={"Creado:"}
-                    respuesta={`${formatearFechaString(actividad.fecha_creacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
-                  />
-                  {actividad.fecha_modificacion && (
-                    <TituloSeccion
-                      children={"Última modificación:"}
-                      respuesta={`${formatearFechaString(actividad.fecha_creacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
-                    />
-                  )}
-                </View>
-              </BotonDetalles>
+      descripcion={
+        actividad.descripcion?.length > 0 
+          ? actividad.descripcion
+          : undefined
+      }
+      tresPuntosContenido={
+        <>
+          <BotonEditar tipo={"horizontal"} onPress={handleEditar}/>
+          <BotonEliminar tipo={"horizontal"} onPress={handleEliminar}/>
+          <BotonDetalles tipo={"horizontal"} tipoModal={"expandible"}>
+            <View className="gap-1">
+              <TituloSeccion
+                children={"Creado:"}
+                respuesta={`${formatearFechaString(actividad.fecha_creacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
+               />
+              {actividad.fecha_modificacion && (
+                <TituloSeccion
+                  children={"Última modificación:"}
+                  respuesta={`${formatearFechaString(actividad.fecha_modificacion, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}`}
+                />
+              )}
             </View>
-          </View>
-        </View>
+          </BotonDetalles>
+        </>
       }
     />
   );

@@ -1,16 +1,18 @@
-import { getDay, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import { getDay, format, parseISO } from "date-fns";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
+import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { CustomToast } from "@/components/base/Toast";
-import { TituloSeccion } from "@/components/base/Titulo";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
+import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
-import { BotonAccionIcon, BotonAgregar, BotonDescripcion } from "@/components/base/Boton";
+import { BotonAgregar, BotonEditar, BotonEliminar } from "@/components/base/Boton";
 
 //CALENDARIO EN ESPAÑOL
 LocaleConfig.defaultLocale = 'es';
@@ -216,70 +218,47 @@ export function Calendario() {
 
   //ITEM: EVENTO
   const renderEvento = ({ item }) => (
-    <View
-      className="bg-white rounded-lg p-4 mx-0.5 my-2 flex-row items-center" 
-      style={{
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 3.5,
-        elevation: 2,
-      }}
-    >
-      {/* BARRA DE COLOR */}
-      <View
-        style={{
-          width: 6,
-          height: "100%",
-          backgroundColor: item.color,
-          borderRadius: 3,
-          marginRight: 8,
-        }}
-      />
-      {/* INFORMACIÓN */}
-      <View className="flex-1">
-        <Text className="font-bold text-lg text-base">{item.title}</Text>
-        {item.hora_inicio && (
-          <Text className="text-gray-500 text-sm">
-            {utcToLocalTime(item.hora_inicio)}
-            {item.hora_termino && " - " + utcToLocalTime(item.hora_termino)}
-          </Text>
-        )}
-        {item.profesional && (
-          <Text className="text-gray-400 text-sm">
-            <Ionicons name="clipboard" size={14} color="#9ca3af" /> {item.profesional}
-          </Text>
-        )}
-        {item.plan && (
-          <Text className="text-gray-400 text-sm">
-            <Ionicons name="person" size={14} color="#9ca3af" /> {item.plan}
-          </Text>
-        )}
-      </View>
-      {/* ACCIONES */}
-      <View className="flex-row items-center gap-3 pr-2">
-        <BotonAccionIcon
-          iconoNombre="create-outline"
-          iconoColor="#3b82f6"
-          onPress={() => handleEditarEvento(item.id)}
-          isLoading={false} 
-        />
-        <BotonAccionIcon
-          iconoNombre="trash-outline"
-          iconoColor="#ef4444"
-          onPress={() => handleEliminarEvento(item.id)}
-          isLoading={false}
-        />
-        <BotonDescripcion tipoModal={"expandible"}>
-          <View className="gap-1">
-            <TituloSeccion
-              children={""}
-              respuesta={`${item.descripcion}`}
-            />
-          </View>
-        </BotonDescripcion>
-      </View>
-    </View>
+    <TarjetaTresPuntos
+      titulo={item.title}
+      iconoFondoColor={item.color}
+      subtituloAlternativo={
+        <View className="flex-1 gap-1">
+          {item.hora_inicio && (
+            <Text className="text-mediumdarkgrey text-sm">
+              {utcToLocalTime(item.hora_inicio)}
+              {item.hora_termino && " - " + utcToLocalTime(item.hora_termino)}
+            </Text>
+          )}
+          {item.profesional && (
+            <View className="gap-1 flex-row items-center">
+              <Ionicons name={Icons["usuario"].iconName} size={15} color={colors.mediumgrey}/>
+              <Text className="text-mediumdarkgrey text-sm">
+                {item.profesional}
+              </Text>
+            </View>
+          )}
+          {item.plan && (
+            <View className="gap-1 flex-row items-center">
+              <Ionicons name={Icons["paciente"].iconName} size={15} color={colors.mediumgrey}/>
+              <Text className="text-mediumdarkgrey text-sm">
+                {item.plan}
+              </Text>
+            </View>
+          )}
+        </View>
+      }
+      descripcion={
+        item.descripcion?.length > 0 
+          ? item.descripcion
+          : undefined
+      }
+      tresPuntosContenido={
+        <>
+          <BotonEditar tipo={"horizontal"} onPress={() => handleEditarEvento(item.id)}/>
+          <BotonEliminar tipo={"horizontal"} onPress={() => handleEliminarEvento(item.id)}/>
+        </>
+      }
+    />
   );
   
   //VISTA
@@ -304,10 +283,9 @@ export function Calendario() {
             theme={{
               backgroundColor: colors.light,
               calendarBackground: colors.light,
-              todayTextColor: colors.secondary,
               arrowColor: colors.primary,
-              monthTextColor: colors.black,
-              textMonthFontSize: 20, 
+              monthTextColor: colors.primary,
+              textMonthFontSize: 20,
               textMonthFontWeight: "bold", 
               textDayHeaderFontSize: 14, 
               textDayHeaderFontWeight: "600", 
@@ -334,7 +312,10 @@ export function Calendario() {
                     justifyContent: "center",
                     backgroundColor:
                       isSelected ? colors.lightmediumgrey :
-                      isToday ? colors.lightblue :
+                      "transparent",
+                    borderWidth: 2,
+                    borderColor:
+                      isToday ? colors.secondary :
                       "transparent",
                   }}
                 >
@@ -366,14 +347,13 @@ export function Calendario() {
               );
             }}
           />
-          <View className="my-5 px-2 flex-1">
-            <Text className="font-bold text-lg mb-2 mx-2">Eventos del día {selectedDate}:</Text>
+          <View className="my-4 mx-2 flex-1">
+            <Text className="font-bold text-black text-lg mb-2">Eventos del {selectedDate && format(parseISO(selectedDate), "d 'de' MMMM 'de' yyyy", { locale: es })}:</Text>
             {eventosDelDiaSeleccionada.length > 0 ? (
               <FlatList
                 data={eventosDelDiaSeleccionada}
                 keyExtractor={(item) => item.id}
                 renderItem={renderEvento}
-                showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 55 }}
               />
             ) : (

@@ -274,7 +274,7 @@ export function MedicamentoFormulario() {
                 label="Nombre"
                 value={nombre}
                 onChangeText={setNombre}
-                placeholder="Nombre del medicamento"
+                placeholder="Ingresa el nombre del medicamento"
                 maxLength={255}
                 asterisco
                 tipo={2}
@@ -285,7 +285,7 @@ export function MedicamentoFormulario() {
                 label="Dosis"
                 value={dosis}
                 onChangeText={setDosis}
-                placeholder="Dosis que corresponde en cada toma"
+                placeholder="Ingresa la dosis de cada toma"
                 multiline
                 maxLength={4000}
                 asterisco
@@ -311,13 +311,27 @@ export function MedicamentoFormulario() {
                 asterisco={true}
                 tipo={2}
             />
+            {/* Opción: Todos los días */}
+            <Text
+              className="text-mediumdarkgrey text-sm text-right mt-1"
+              style={{ textDecorationLine: "underline" }}
+              onPress={() => {
+                if (dias.length === 7) {
+                  setDias([]); // si ya estaban todos, desmarca todo
+                } else {
+                  setDias([0, 1, 2, 3, 4, 5, 6]); // selecciona todos
+                }
+              }}
+            >
+              {dias.length === 7 ? "Deseleccionar todos los días" : "Seleccionar todos los días"}
+            </Text>
 
             {/* Frecuencia */}
             <FormularioCampo
                 label="Frecuencia"
                 value={frecuencia ? frecuencia.toString() : ""}
                 onChangeText={(text) => setFrecuencia(Number(text))}
-                placeholder="Cantidad de dosis por día"
+                placeholder="Ingresa la cantidad de dosis por día"
                 keyboardType="numeric"
                 asterisco
                 maxLength={2}

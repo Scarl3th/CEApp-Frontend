@@ -37,8 +37,14 @@ interface TituloProps {
   subtitulo?: string;
   onPressRecargar?: () => void;
   onBusquedaChange?: (texto: string) => void;
+  show?: boolean;
 }
-export function Titulo({ children, subtitulo, onPressRecargar, onBusquedaChange }: TituloProps) {
+export function Titulo({
+  children,
+  subtitulo,
+  onPressRecargar,
+  onBusquedaChange,
+}: TituloProps) {
   //ESTADOS
   const [busqueda, setBusqueda] = useState("");
   const [showBuscador, setShowBuscador] = useState(false);

@@ -480,10 +480,12 @@ export function BotonDescripcion({
 interface BotonEditarProps {
   onPress: () => void;
   texto?: string;
+  tipo?: string;
 }
 export function BotonEditar({
   onPress,
   texto = "Editar",
+  tipo = "vertical",
 }: BotonEditarProps) {
   return (
     <BotonAccion
@@ -492,6 +494,7 @@ export function BotonEditar({
       texto={texto}
       iconoNombre={Icons["editar"].iconName}
       iconoColor={colors.mediumgreen}
+      tipo={tipo}
     />
   );
 }
@@ -706,12 +709,14 @@ interface BotonTabProps {
   active: boolean;
   today?: boolean;
   onPress: () => void;
+  textSize?: string;
 }
 export function BotonTab({
   label,
   active,
   today,
-  onPress 
+  onPress,
+  textSize="text-lg",
 }: BotonTabProps) {
   return (
     <TouchableOpacity
@@ -724,7 +729,7 @@ export function BotonTab({
         borderColor: today ? colors.secondary : "transparent",
       }}
     >
-    <Text className={`font-semibold text-lg items-center justify-center`}
+    <Text className={`font-semibold ${textSize} items-center justify-center`}
           style={{ color: active ? colors.white : colors.primary }}>
           {label}
     </Text>

@@ -516,22 +516,21 @@ export function FormularioCampoFecha({
             style={{
               backgroundColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.mediumdarkishgrey :
+                fecha ? colors.lightmediumgrey :
                 colors.white,
               borderColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.mediumdarkishgrey :
                 colors.mediumgrey,
             }}
           >
             <View className="flex-row items-center gap-2">
               <Text
                 className="flex-1 text-base"
-                style={{ color: fecha ? colors.white : colors.mediumdarkgrey }}
+                style={{ color: fecha ? colors.black : colors.mediumdarkgrey }}
               >
                 {fecha ? formatearFechaString(fecha, { day: "numeric", month: "long", year: "numeric" }) : placeholder}
               </Text>
-              <Ionicons name={Icons["derecha"].iconName} size={20} color={fecha ? colors.white : colors.mediumdarkgrey}/>
+              <Ionicons name={Icons["derecha"].iconName} size={20} color={fecha ? colors.black : colors.mediumdarkgrey}/>
             </View>
           </View>
         )}
@@ -594,22 +593,21 @@ export function FormularioCampoFechaFutura({
             style={{
               backgroundColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.mediumdarkishgrey :
+                fecha ? colors.lightmediumgrey :
                 colors.white,
               borderColor:
                 pressed ? colors.mediumlightgrey :
-                fecha ? colors.mediumdarkishgrey :
                 colors.mediumgrey,
             }}
           >
             <View className="flex-row items-center gap-2">
               <Text
                 className="flex-1 text-base"
-                style={{ color: fecha ? colors.white : colors.mediumdarkgrey }}
+                style={{ color: fecha ? colors.black : colors.mediumdarkgrey }}
               >
                 {fecha ? formatearFechaString(fecha, { day: "numeric", month: "long", year: "numeric" }) : placeholder}
               </Text>
-              <Ionicons name={Icons["derecha"].iconName} size={20} color={fecha ? colors.white : colors.mediumdarkgrey}/>
+              <Ionicons name={Icons["derecha"].iconName} size={20} color={fecha ? colors.black : colors.mediumdarkgrey}/>
             </View>
           </View>
         )}
@@ -659,22 +657,21 @@ export function FormularioCampoHora({
             style={{
               backgroundColor:
                 pressed ? colors.mediumlightgrey :
-                hora ? colors.mediumdarkishgrey :
+                hora ? colors.lightmediumgrey :
                 colors.white,
               borderColor:
                 pressed ? colors.mediumlightgrey :
-                hora ? colors.mediumdarkishgrey :
                 colors.mediumgrey,
             }}
           >
             <View className="flex-row items-center gap-2">
               <Text
                 className="flex-1 text-base"
-                style={{ color: hora ? colors.white : colors.mediumdarkgrey }}
+                style={{ color: hora ? colors.black : colors.mediumdarkgrey }}
               >
                 {hora ? formatearFechaString(hora, {hour: '2-digit', minute:'2-digit'}) : placeholder}
               </Text>
-              <Ionicons name={Icons["derecha"].iconName} size={20} color={hora ? colors.white : colors.mediumdarkgrey}/>
+              <Ionicons name={Icons["derecha"].iconName} size={20} color={hora ? colors.black : colors.mediumdarkgrey}/>
             </View>
           </View>
         )}
