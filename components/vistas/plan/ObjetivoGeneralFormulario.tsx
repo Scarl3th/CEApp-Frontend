@@ -8,6 +8,7 @@ import { colors, colorsUser } from "@/constants/colors";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { DescartarCambiosContext } from "@/context/DescartarCambios";
 import { FormularioCampo, FormularioCampoSelect } from "@/components/base/Entrada";
+import api from "@/context/api"; 
 
 const categorias = [
   { id: "Acompañamiento en transiciones (educativas y vitales)", titulo: "Acompañamiento en transiciones (educativas y vitales)", color: colors.primary },
@@ -56,7 +57,6 @@ export function ObjetivoGeneralFormulario() {
     if (modoEdicion) {
       if (!authToken || !refreshToken) return;
       console.log("[plan: objetivo-general-agregar] Obteniendo información del objetivo general:", id);
-      const api = createApi(authToken, refreshToken, setAuthToken);
       api
         .get("/objetivos/detalle/" + id + "/")
         .then((res: any) => {
@@ -156,7 +156,6 @@ export function ObjetivoGeneralFormulario() {
     setIsLoadingBoton(true);
     try {
       if (!authToken || !refreshToken) return;
-      const api = createApi(authToken, refreshToken, setAuthToken);
       if (modoEdicion) {
         console.log("[plan: objetivo-general-agregar] Editando objetivo general:", {
           pacienteID,
@@ -194,7 +193,8 @@ export function ObjetivoGeneralFormulario() {
           router.push(`/profesional/${paciente}/plan?recargar=1&success=1`);
         }
       }
-    } catch(err) {
+    } catch(err: any) {
+      if (err.isTokenExpired) return; // ya se hizo logout, no mostrar alerta
       console.log("[plan: objetivo-general-agregar] Error:", err); 
       Alert.alert(
         "Error",

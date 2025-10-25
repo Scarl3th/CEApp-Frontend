@@ -1,8 +1,10 @@
 import axios from "axios";
 import Constants from "expo-constants";
-import { decode as atob } from "base-64"; //Decodificar token
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import React, { createContext, ReactNode, useContext, useState } from "react";
+import { Alert } from "react-native";
+import { router } from "expo-router";
+import { setAuthStore } from "./api"; 
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
 
@@ -30,18 +32,6 @@ type AuthProviderType = {
   children: ReactNode;
 }
 
-//FUNCIONES ÚTILES
-const decodeToken = (token: string) => {
-  try {
-    const payload = token.split('.')[1];
-    const decoded = JSON.parse(atob(payload));
-    return decoded;
-  } catch (e) {
-    console.error("[auth] Error al decodificar token:", e);
-    return null;
-  }
-};
-
 //CONTEXTO
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -49,36 +39,6 @@ export const AuthProvider = ({ children }: AuthProviderType) => {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-
-  //REFRESCO AUTOMÁTICO DEL TOKEN
-  useEffect(() => {
-    if (!authToken || !refreshToken) return;
-
-    const decoded = decodeToken(authToken);
-    if (!decoded?.exp) return;
-
-    const expirationTime = decoded.exp * 1000;
-    const now = Date.now();
-    const delay = expirationTime - now - 30000; // 30s antes
-
-    if (delay > 0) {
-      const timeout = setTimeout(() => {
-        axios.post(`${API_BASE_URL}/token/refresh`, {
-          refresh: refreshToken,
-        })
-        .then(res => {
-          const newAccess = res.data.access;
-          setAuthToken(newAccess);
-          console.log("[auth] Token actualizado automáticamente");
-        })
-        .catch(err => {
-          console.error("[auth] Error al refrescar token automáticamente", err);
-          logout();
-        });
-      }, delay);
-      return () => clearTimeout(timeout);
-    }
-  }, [authToken, refreshToken]);
 
   //LOGIN
   const login = async (email: string, password: string): Promise<void> => {
@@ -102,6 +62,7 @@ export const AuthProvider = ({ children }: AuthProviderType) => {
       setRefreshToken(refreshToken);
       setUser({ id: id, email: email, nombre: nombre, role: role, cargo: cargo, institucion: institucion });
     } catch (error: unknown) {
+      console.error("[auth] Error al iniciar sesión:", error);
       throw error;
     }
   };
@@ -114,6 +75,14 @@ export const AuthProvider = ({ children }: AuthProviderType) => {
     setRefreshToken(null);
     setUser(null);
   };
+
+  // NUEVO: conectar el AuthProvider con la instancia global de Axios
+  setAuthStore({
+    getAccessToken: () => authToken,
+    getRefreshToken: () => refreshToken,
+    setAccessToken: (token: string) => setAuthToken(token),
+    logout,
+  });
 
   //API CON INTERCEPTORES
   const createApi = (authToken, refreshToken, setAuthToken) => {
@@ -137,20 +106,34 @@ export const AuthProvider = ({ children }: AuthProviderType) => {
           originalRequest._retry = true;
 
           if (refreshToken) {
+            console.log("[auth] Access token expirado. Intentando refresh...");
             try {
-              const res = await axios.post(`${API_BASE_URL}/token/refresh`, {
+              const res = await axios.post(`${API_BASE_URL}/token/refresh/`, {
                 refresh: refreshToken,
               },
               {timeout: 2000});
 
               const newAccess = res.data.access;
+              console.log("[auth] Nuevo access token obtenido:", newAccess);
+              
               setAuthToken(newAccess);
 
+              // Reintentar la request original con el nuevo token
               originalRequest.headers["Authorization"] = `Bearer ${newAccess}`;
               return api(originalRequest);
-            } catch (e) {
-              console.error("[auth] No se pudo refrescar el token", e);
-              throw e;
+            } catch (e: any) {
+              await logout();
+              console.log("[auth] Token de refresh expirado");
+              Alert.alert(
+                "Sesión expirada",
+                "Tu sesión ha caducado. Por seguridad, vuelve a iniciar sesión."
+              );
+
+              // REDIRECCIONAR AL LOGIN
+              router.push("/login");
+
+              e.isTokenExpired = true;
+              return Promise.reject(e);
             }
           }
         }
