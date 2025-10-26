@@ -164,7 +164,8 @@ const EntradasLista = ({
 //BITÁCORA
 export function Bitacora() {
 
-  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
+  const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
+  const isProfesional = user?.role === "profesional";
   const router = useRouter();
   const { paciente, recargar, success } = useLocalSearchParams();
   const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
@@ -294,7 +295,7 @@ export function Bitacora() {
         )}
       </View>
       {/* BOTÓN FLOTANTE */}
-      <BotonAgregar onPress={handleAgregar}/>
+      {isProfesional ? <BotonAgregar onPress={handleAgregar}/> : null}
       {/* TOAST */}
       {toast && (
         <CustomToast

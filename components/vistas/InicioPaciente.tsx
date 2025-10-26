@@ -124,14 +124,12 @@ export function InicioPaciente() {
               subtitulo={[Icons["plan"].description]}
               icono={Icons["plan"].iconName}
             />
-            {isProfesional ? (
-              <TarjetaInicio
-                onPress={() => router.replace(`/${rol}/${paciente}/bitacora`)}
-                titulo={Icons["bitacora"].label}
-                subtitulo={[Icons["bitacora"].description]}
-                icono={Icons["bitacora"].iconName}
-              />
-            ) : null}
+            <TarjetaInicio
+              onPress={() => router.replace(`/${rol}/${paciente}/bitacora`)}
+              titulo={Icons["bitacora"].label}
+              subtitulo={[Icons["bitacora"].description]}
+              icono={Icons["bitacora"].iconName}
+            />
             {isProfesional ? (
               <TarjetaInicio
                 onPress={() => router.replace(`/${rol}/${paciente}/chat`)}
@@ -178,6 +176,20 @@ export function InicioPaciente() {
                 icono={Icons["actividades"].iconName}
               />
             ) : null}
+            {!isProfesional ? (
+              <TarjetaInicio
+                onPress={() => router.replace(`/${rol}/${paciente}/accesos`)}
+                titulo={Icons["accesos"].label}
+                subtitulo={[Icons["accesos"].description]}
+                icono={Icons["accesos"].iconName}
+              />
+            ) : null}
+            <TarjetaInicio
+              onPress={() => router.replace(`/${rol}/${paciente}/tutoriales`)}
+              titulo={Icons["tutoriales"].label}
+              subtitulo={[Icons["tutoriales"].description]}
+              icono={Icons["tutoriales"].iconName}
+            />
           </View>
         </ScrollView>
       )}

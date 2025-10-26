@@ -1,11 +1,11 @@
-import { colors } from "@/constants/colors";
-import { IconType, Icons } from "@/constants/icons";
-import { useAuth } from "@/context/auth";
-import { useDescartarCambios } from "@/context/DescartarCambios";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import { useAuth } from "@/context/auth";
+import { colors } from "@/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { IconType, Icons } from "@/constants/icons";
+import { useDescartarCambios } from "@/context/DescartarCambios";
 
 function usarDescartarCambios(pathname: string): boolean {
   return pathname.includes("/objetivo") || pathname.includes("/entrada");
@@ -65,6 +65,7 @@ export function Footer() {
     : [
         { route: `/cuidador/${paciente}`, iconName: Icons["inicio"].iconName, label: Icons["inicio"].label },
         { route: `/cuidador/${paciente}/plan`, iconName: Icons["plan"].iconName, label: Icons["plan"].label },
+        { route: `/cuidador/${paciente}/bitacora`, iconName: Icons["bitacora"].iconName, label: Icons["bitacora"].label },
         { route: `/cuidador/${paciente}/calendario`, iconName: Icons["calendario"].iconName, label: Icons["calendario"].label },
       ];
 

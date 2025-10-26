@@ -8,7 +8,7 @@ export default function LayoutCuidadorPaciente() {
 
   const { paciente } = useLocalSearchParams();
   const [pacienteID, pacienteEncodedNombre] = paciente?.split("-") ?? [null, null];
-  const pacienteNombre = pacienteEncodedNombre ? decodeURIComponent(pacienteEncodedNombre) : null;
+  const pacienteNombre = pacienteEncodedNombre ? decodeURIComponent(pacienteEncodedNombre) : "";
 
   return (
     <View className="flex-1">

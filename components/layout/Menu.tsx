@@ -44,6 +44,8 @@ export function Menu({ visible, onClose, paciente }) {
     { route: `medicamentos`, iconName: Icons["medicamentos"].iconName, label: Icons["medicamentos"].label, roles: ["profesional","cuidador"] },
     { route: `informes`, iconName: Icons["informes"].iconName, label: Icons["informes"].label, roles: ["profesional","cuidador"] },
     { route: `equipo`, iconName: Icons["equipo"].iconName, label: Icons["equipo"].label, roles: ["profesional","cuidador"] },
+    { route: `accesos`, iconName: Icons["accesos"].iconName, label: Icons["accesos"].label, roles: ["cuidador"] },
+    { route: `tutoriales`, iconName: Icons["tutoriales"].iconName, label: Icons["tutoriales"].label, roles: ["profesional","cuidador"] },
   ];
 
   //VISTA
@@ -68,19 +70,21 @@ export function Menu({ visible, onClose, paciente }) {
           <Text className="text-lightgrey text-base">{primeraLetraMayuscula(user.role)}</Text>
         </View>
 
-        <View className="gap-4">
+        <View className="gap-3">
 
-          <TarjetaMenu
-            titulo={Icons["calendario"].label}
-            fondoColor={colors.lightblue}
-            textoColor={colors.black}
-            iconoColor={colors.mediumblue}
-            iconoNombre={Icons["calendario"].iconName}
-            onPress={() => {
-              setRutaPendiente(`/${rol}/${paciente}/calendario`);
-              onClose();
-            }}
-          />
+          {isProfesional ? (
+            <TarjetaMenu
+              titulo={Icons["calendario"].label}
+              fondoColor={colors.lightblue}
+              textoColor={colors.black}
+              iconoColor={colors.mediumblue}
+              iconoNombre={Icons["calendario"].iconName}
+              onPress={() => {
+                setRutaPendiente(`/${rol}/${paciente}/calendario`);
+                onClose();
+              }}
+            />
+          ) : null}
 
           {isProfesional && (
             <TarjetaMenu
@@ -109,32 +113,6 @@ export function Menu({ visible, onClose, paciente }) {
                 }}
               />
           ))}
-
-          <TarjetaMenu
-            titulo={"Cambiar paciente"}
-            fondoColor={colors.lightred}
-            textoColor={colors.black}
-            iconoColor={colors.mediumred}
-            iconoNombre={Icons["paciente"].iconName}
-            onPress={() => {
-              Alert.alert(
-                "¿Cambiar paciente?",
-                "¿Estás segur@ de que deseas cambiar paciente?",
-                [
-                  { text: "Cancelar", style: "cancel" },
-                  {
-                    text: "Cambiar paciente",
-                    style: "destructive",
-                    onPress: () => {
-                      console.log("[menú] Cambiando paciente...");
-                      setRutaPendiente(`/${rol}`);
-                      onClose();
-                    },
-                  },
-                ]
-              );
-            }}
-          />
 
           <TarjetaMenu
             titulo={Icons["cerrar_sesion"].label}

@@ -54,6 +54,8 @@ export type IconType =
     | "person"
     | "time-outline"
     | "trending-up"
+    | "help-circle-outline"
+    | "reader-outline"
 ;
 
 export const Icons: Record<
@@ -92,7 +94,7 @@ export const Icons: Record<
   objetivos_especificos_logrado: { iconName: "checkmark-circle", label: "Objetivos específicos (logrado)", description: "" },
   objetivos_especificos_medianamente_logrado: { iconName: "contrast", label: "Objetivos específicos (medianamente logrado)", description: "" },
   objetivos_especificos_no_logrado: { iconName: "close-circle", label: "Objetivos específicos (no logrado)", description: "" },
-  observaciones: { iconName: "eye-outline", label: "Observaciones", description: "Notas y comentarios sobre el paciente" },
+  observaciones: { iconName: "eye-outline", label: "Observaciones", description: "Registro del comportamiento" },
   observacion: { iconName: "eye", label: "Observaciones", description: "" },
   paciente: { iconName: "heart-circle-outline", label: "Paciente", description: "" },
   plan: { iconName: "bulb-outline", label: "Plan", description: "Objetivos generales y específicos" },
@@ -115,4 +117,6 @@ export const Icons: Record<
   ver: { iconName: "expand", label: "ver", description: "" },
   tiempo: { iconName: "time-outline", label: "ver", description: "" },
   progresion: { iconName: "trending-up", label: "ver", description: "" },
+  tutoriales: { iconName: "help-circle-outline", label: "Tutoriales", description: "Guías rápidas para aprender a usar CEApp" },
+  accesos: { iconName: "reader-outline", label: "Accesos", description: "Historial de accesos y acciones" },
 };

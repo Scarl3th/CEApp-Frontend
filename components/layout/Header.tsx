@@ -1,37 +1,36 @@
-import { BotonEsquinaSuperior } from "@/components/base/Boton";
-import { Menu } from "@/components/layout/Menu";
-import { colors } from "@/constants/colors";
-import { Icons } from "@/constants/icons";
-import { images } from "@/constants/images";
-import { useDescartarCambios } from "@/context/DescartarCambios";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { usePathname, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, Platform, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { router, useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import { Alert, Image, Platform, Pressable, Text, View } from "react-native";
+import { Icons } from "@/constants/icons";
+import { colors } from "@/constants/colors";
+import { images } from "@/constants/images";
+import { Menu } from "@/components/layout/Menu";
+import { CustomModal } from "@/components/base/Modal";
+import { TarjetaMenu } from "@/components/base/Tarjeta";
+import { BotonEsquinaSuperior } from "@/components/base/Boton";
+import { Titulo, TituloSeccion } from "@/components/base/Titulo";
+import { useDescartarCambios } from "@/context/DescartarCambios";
 
 //HEADER
 export function Header() {
 
   const router = useRouter();
-  
+
   const ruta = decodeURIComponent(usePathname());
   if (!ruta) return null;
   const ruta_partes = ruta.split("/").filter(Boolean);
   const rol = ruta_partes[0];
   const paciente = ruta_partes[1];
   let ruta_atras: string | null = null;
-
   const { handleDescartarCambios } = useDescartarCambios();
   let usarDescartarCambios = false;
-
   //ESTADOS
   const [menu, setMenu] = useState(false);
-
   //0: cerrar sesión
   //1: menú
   //2: volver atrás
   let icono: 0 | 1 | 2;
-
   if (ruta_partes.length === 1) {
     icono = 0;
     ruta_atras = "/login";
@@ -83,7 +82,6 @@ export function Header() {
   } else {
     icono = 1;
   }
-
   const handlePress = () => {
     if (usarDescartarCambios && handleDescartarCambios) {
       handleDescartarCambios(ruta_atras!);
@@ -104,17 +102,13 @@ export function Header() {
       router.replace(ruta_atras!);
     }
   };
-
   const handleActualizaciones = () => {
     ruta_atras = `/${rol}/${paciente}/actualizaciones`;
     handlePress();
   }
-
   //VISTA
   return (
-
     <View className="flex-row bg-primary h-16 justify-center items-center relative">
-
       {icono === 0 && (
         <BotonEsquinaSuperior
           onPress={handlePress}
@@ -123,7 +117,6 @@ export function Header() {
           tipo={"izquierda"}
         />
       )}
-
       {icono === 1 && (
         <BotonEsquinaSuperior
           onPress={() => setMenu(true)}
@@ -132,7 +125,6 @@ export function Header() {
           tipo={"izquierda"}
         />
       )}
-
       {icono === 2 && (
         <BotonEsquinaSuperior
           onPress={handlePress}
@@ -141,7 +133,16 @@ export function Header() {
           tipo={"izquierda"}
         />
       )}
-
+      {/* Tengo que mejorar el if para que solo se muestre en las vistas que tienen tutorial */}
+      {ruta_partes.length > 1 && !ruta.includes("/paciente-agregar") && (
+        <BotonEsquinaSuperior
+          onPress={() => {}}
+          fondoBoton={colors.primary}
+          iconName={Icons["tutoriales"].iconName}
+          tipo={"derecha"}
+          horizontal={60}
+        />
+      )}
       {ruta_partes.length > 1 && !ruta.includes("/paciente-agregar") && (
         <BotonEsquinaSuperior
           onPress={handleActualizaciones}
@@ -150,7 +151,6 @@ export function Header() {
           tipo={"derecha"}
         />
       )}
-
       <View className="flex-row items-end">
         <Image
           source={images.logo}
@@ -163,30 +163,100 @@ export function Header() {
         />
         <Text className="text-2xl text-light font-extrabold align-middle">CEApp</Text>
       </View>
-
       <Menu
         visible={menu}
         onClose={() => setMenu(false)}
         paciente={paciente}
       />
-
     </View>
-
   );
-
 }
 
-//HEADER PACIENTE
+//HEADER: PACIENTE
 type HeaderPacienteProps = {
   nombre: string;
 };
-export function HeaderPaciente({ nombre }: HeaderPacienteProps) {
+export function HeaderPaciente({
+  nombre
+}: HeaderPacienteProps) {
+  const { paciente } = useLocalSearchParams();
+  const pathname = usePathname();
+  const ruta = decodeURIComponent(pathname || "");
+  const ruta_partes = ruta.split("/").filter(Boolean);
+  const rol = ruta_partes[0];
+  const [showModal, setShowModal] = useState(false);
   return (
-    <View className="bg-secondary px-4 py-2 flex-row items-center justify-center gap-1">
-      <Ionicons name={Icons["paciente"].iconName} size={20} color="white" />
-      <Text className="text-white text-base font-bold">
-        Paciente: {nombre}
-      </Text>
-    </View>
+    <>
+      {/* HEADER: PACIENTE */}
+      <Pressable onPress={() => setShowModal(true)}>
+        {({ pressed }) => (
+          <View
+            className="px-4 py-2 gap-1 flex-row items-center justify-center"
+            style = {{ backgroundColor: pressed ? colors.mediumlightgrey : colors.secondary}}
+          >
+            <Ionicons name={Icons["paciente"].iconName} size={20} color="white" />
+            <Text className="text-white text-base font-bold">
+              Paciente: {nombre}
+            </Text>
+            <Ionicons name={Icons["abajo"].iconName} size={20} color="white"/>
+          </View>
+        )}
+      </Pressable>
+      {/* MODAL: PACIENTE */}
+      <CustomModal
+        tipo={"expandible"}
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+      >
+        <View className="flex-1 p-2 gap-4 justify-center">
+          {/* TÍTULO */}
+          <Text className="text-primary text-xl font-bold">
+            {nombre}
+          </Text>
+          {/* CONTENIDO */}
+          <View className="gap-2">
+            {/* OPCIONES */}
+            <TituloSeccion children={"Opciones:"}/>
+            <TarjetaMenu
+              titulo={"Ver información"}
+              fondoColor={colors.lightblue}
+              textoColor={colors.black}
+              iconoColor={colors.mediumblue}
+              iconoNombre={Icons["agregar"].iconName}
+              onPress={() => {
+                console.log("[header] Viendo información del paciente...");
+                router.replace(`/${rol}/${paciente}/paciente`);
+                setShowModal(false);
+              }}
+            />
+            <TarjetaMenu
+              titulo={"Cambiar paciente"}
+              fondoColor={colors.lightred}
+              textoColor={colors.black}
+              iconoColor={colors.mediumred}
+              iconoNombre={Icons["paciente"].iconName}
+              onPress={() => {
+                Alert.alert(
+                  "¿Cambiar paciente?",
+                  "¿Estás segur@ de que deseas cambiar paciente?",
+                  [
+                    { text: "Cancelar", style: "cancel" },
+                    {
+                      text: "Cambiar paciente",
+                      style: "destructive",
+                      onPress: () => {
+                        console.log("[header] Cambiando paciente...");
+                        router.replace(`/${rol}`);
+                        setShowModal(false);
+                      },
+                    },
+                  ]
+                );
+              }}
+            />
+          </View>
+        </View>
+      </CustomModal>
+    </>
   );
 }

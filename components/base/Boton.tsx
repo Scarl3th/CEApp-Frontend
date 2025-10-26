@@ -530,6 +530,7 @@ interface BotonEsquinaSuperiorProps {
   color?: string;
   size?: number;
   top?: number;
+  horizontal?: number;
   tipo: "izquierda" | "derecha";
 }
 export function BotonEsquinaSuperior({
@@ -539,6 +540,7 @@ export function BotonEsquinaSuperior({
   color = "white",
   size = 40,
   top = 10,
+  horizontal = 16,
   tipo,
 }: BotonEsquinaSuperiorProps) {
   return (
@@ -548,8 +550,8 @@ export function BotonEsquinaSuperior({
         {
           position: "absolute",
           top: top,
-          left: tipo === "izquierda" ? 16 : undefined,
-          right: tipo === "derecha" ? 16 : undefined,
+          left: tipo === "izquierda" ? horizontal : undefined,
+          right: tipo === "derecha" ? horizontal : undefined,
           zIndex: 10,
         },
       ]}

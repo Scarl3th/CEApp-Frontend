@@ -114,7 +114,7 @@ export function TarjetaMenu({
     <Pressable onPress={onPress} className="rounded-lg">
       {({ pressed }) => (
         <View
-          className={"flex-row items-center rounded-lg px-6 py-3"}
+          className={"flex-row items-center rounded-lg px-6 py-2"}
           style={{
             backgroundColor: pressed ? colors.mediumlightgrey : fondoColor,
           }}
