@@ -35,7 +35,7 @@ interface PacienteItemProps {
   paciente: Paciente;
   isProfesional: boolean;
 }
-const PacienteItem = ({
+export const PacienteItem = ({
   paciente,
   isProfesional,
 }: PacienteItemProps) => {

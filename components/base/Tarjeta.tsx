@@ -190,6 +190,11 @@ export function TarjetaSelector({
           className={`flex-row items-center rounded-lg ${tarjetaEstilo}`}
           style={{
             backgroundColor: pressed ? colors.mediumlightgrey : tarjetaColor,
+            shadowColor: colors.black,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.15,
+            shadowRadius: 3.5,
+            elevation: 2,
           }}
         >
           {icono && <View className="mr-3">{icono}</View>}

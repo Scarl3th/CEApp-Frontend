@@ -1,13 +1,14 @@
 import { useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { router, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { Alert, Image, Platform, Pressable, Text, View } from "react-native";
+import { router, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { images } from "@/constants/images";
 import { Menu } from "@/components/layout/Menu";
 import { CustomModal } from "@/components/base/Modal";
 import { TarjetaMenu } from "@/components/base/Tarjeta";
+import { BotonTutorial } from "@/components/vistas/Tutoriales";
 import { BotonEsquinaSuperior } from "@/components/base/Boton";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { useDescartarCambios } from "@/context/DescartarCambios";
@@ -133,16 +134,8 @@ export function Header() {
           tipo={"izquierda"}
         />
       )}
-      {/* Tengo que mejorar el if para que solo se muestre en las vistas que tienen tutorial */}
-      {ruta_partes.length > 1 && !ruta.includes("/paciente-agregar") && (
-        <BotonEsquinaSuperior
-          onPress={() => {}}
-          fondoBoton={colors.primary}
-          iconName={Icons["tutoriales"].iconName}
-          tipo={"derecha"}
-          horizontal={60}
-        />
-      )}
+      {/* POR MEJORAR: IF */}
+      <BotonTutorial/>
       {ruta_partes.length > 1 && !ruta.includes("/paciente-agregar") && (
         <BotonEsquinaSuperior
           onPress={handleActualizaciones}
@@ -225,7 +218,7 @@ export function HeaderPaciente({
               iconoNombre={Icons["agregar"].iconName}
               onPress={() => {
                 console.log("[header] Viendo información del paciente...");
-                router.replace(`/${rol}/${paciente}/paciente`);
+                router.push(`/${rol}/${paciente}/paciente`);
                 setShowModal(false);
               }}
             />

@@ -35,6 +35,7 @@ export function TituloSeccion ({
 interface TituloProps {
   children: string;
   subtitulo?: string;
+  subtituloTamano?: string;
   onPressRecargar?: () => void;
   onBusquedaChange?: (texto: string) => void;
   show?: boolean;
@@ -42,6 +43,7 @@ interface TituloProps {
 export function Titulo({
   children,
   subtitulo,
+  subtituloTamano = "sm",
   onPressRecargar,
   onBusquedaChange,
 }: TituloProps) {
@@ -68,7 +70,7 @@ export function Titulo({
             <Text className="text-2xl text-primary font-bold text-center px-2 pt-2">
               {children}
             </Text>
-            <Text className="text-sm text-primary font-bold text-center px-2 pb-2">
+            <Text className={`text-${subtituloTamano} text-primary font-bold text-center px-2 pb-2`}>
               {subtitulo}
             </Text>
           </View>

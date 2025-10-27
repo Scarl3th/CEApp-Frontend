@@ -88,7 +88,7 @@ export function Footer() {
               if (handleDescartarCambios && usarDescartarCambios(pathname)) {
                 handleDescartarCambios(item.route);
               } else {
-                router.replace(item.route);
+                router.push(item.route);
               }
             }}
           />
