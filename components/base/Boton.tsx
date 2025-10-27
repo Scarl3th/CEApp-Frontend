@@ -499,6 +499,31 @@ export function BotonEditar({
   );
 }
 
+//BOTÓN: EDITAR PEQUEÑO
+interface BotonEditarMiniProps {
+  onPress: () => void;
+}
+
+export function BotonEditarMini({ onPress }: BotonEditarMiniProps) {
+  return (
+    <Pressable onPress={onPress} style={{ width: 40, height: 40, borderRadius: 10 }}>
+      {({ pressed }) => (
+        <View
+          style={{
+            backgroundColor: pressed ? colors.mediumgrey : colors.lightgreen,
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: 10,
+          }}
+        >
+          <Ionicons name={Icons["editar"].iconName} size={20} color={colors.mediumgreen} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 //BOTÓN: ELIMINAR 
 interface BotonEliminarProps {
   onPress: () => void;
