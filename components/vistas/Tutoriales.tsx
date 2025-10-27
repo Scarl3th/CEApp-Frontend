@@ -213,7 +213,7 @@ export function SelectorPacienteTutorial({
 
   return (
     <View className="flex-1 px-4 py-6">
-      <View className="flex-1 items-center justify-start gap-4">
+      <View className="flex-1 items-center justify-start gap-4" pointerEvents="none">
         {/* TÍTULO */}
         <Titulo
           subtitulo={
