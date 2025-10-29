@@ -56,6 +56,7 @@ export type IconType =
     | "trending-up"
     | "help-circle-outline"
     | "reader-outline"
+    | "filter-circle"
 ;
 
 export const Icons: Record<
@@ -119,4 +120,5 @@ export const Icons: Record<
   progresion: { iconName: "trending-up", label: "ver", description: "" },
   tutoriales: { iconName: "help-circle-outline", label: "Tutoriales", description: "Guías rápidas para aprender a usar CEApp" },
   accesos: { iconName: "reader-outline", label: "Accesos", description: "Historial de accesos y acciones" },
+  filtro_circulo: { iconName: "filter-circle", label: "Filtro", description: "" }
 };

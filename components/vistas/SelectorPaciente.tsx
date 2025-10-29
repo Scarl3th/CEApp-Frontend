@@ -110,7 +110,6 @@ export function SelectorPaciente() {
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [tutoriales, setTutoriales] = useState<Tutoriales>();
 
   useEffect(() => {
     fetchPacientes();
@@ -181,6 +180,7 @@ export function SelectorPaciente() {
       }
       //HANDLE: TUTORIAL
       if (!tutorialesAlmacenamientoDatos.tutorial_selector_paciente) {
+        console.log("[selector-paciente] Tutorial no visto...");
         console.log("[selector-paciente] Activando tutorial...");
         setShowTutorial(true);
         console.log("[selector-paciente] Actualizando tutorial en la base de datos...");
@@ -189,7 +189,9 @@ export function SelectorPaciente() {
         console.log("[selector-paciente] Actualizando tutorial en almacenamiento local...");
         await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
       }
-      setTutoriales(tutorialesAlmacenamientoDatos);
+      else {
+        console.log("[selector-paciente] Tutorial visto...");
+      }
       setIsLoading(false);
       setError(false);
     } catch (err) {

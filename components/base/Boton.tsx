@@ -593,6 +593,22 @@ export function BotonEsquinaSuperior({
   );
 }
 
+//BOTÓN: FILTRO
+type BotonFiltroProps = {
+  onPress: () => void;
+};
+export function BotonFiltro({
+  onPress,
+}: BotonFiltroProps ) {
+  return (
+    <Pressable onPress={onPress} accessibilityLabel="Filtrar contenido">
+      {({ pressed }) => (
+        <Ionicons name={Icons["filtro_circulo"].iconName} size={40} color={pressed ? colors.mediumlightgrey : colors.mediumgrey}/>
+      )}
+    </Pressable>
+  );
+}
+
 //BOTÓN: PROGRESO
 export function BotonProgreso({ onPress }: { onPress: () => void }) {
   return (

@@ -1,12 +1,13 @@
 import * as FileSystem from 'expo-file-system';
 import React, { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Alert, FlatList, Pressable, View } from "react-native";
+import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
-import { EncodingType, readAsStringAsync, StorageAccessFramework, writeAsStringAsync } from 'expo-file-system/legacy';
+import { EncodingType, readAsStringAsync, StorageAccessFramework, writeAsStringAsync } from "expo-file-system/legacy";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
+import { CustomModal } from "@/components/base/Modal";
 import { CustomToast } from "@/components/base/Toast";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
@@ -14,7 +15,7 @@ import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaDDMMYYYY } from "@/components/base/FormatearFecha";
 import { EspacioUsadoBarra } from "@/components/vistas/informes/Componentes";
-import { BotonAgregar, BotonDescargar, BotonDetalles, BotonVer } from "@/components/base/Boton";
+import { BotonAgregar, BotonDescargar, BotonDetalles, BotonFiltro, BotonVer } from "@/components/base/Boton";
 
 //INFORME
 interface Informe {
@@ -204,6 +205,7 @@ export function Informes() {
   const [error, setError] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
+  const [showModalFiltro, setShowModalFiltro] = useState(false);
 
   useEffect(() => {
     fetchInformes();
@@ -282,7 +284,7 @@ export function Informes() {
       {/* TÍTULO */}
       <Titulo
         onPressRecargar={fetchInformes}
-        onBusquedaChange={setBusqueda}
+        onPressFiltro={() => setShowModalFiltro(true)}
       >
         Informes
       </Titulo>
@@ -309,6 +311,18 @@ export function Informes() {
           />
         </>
       )}
+      {/* MODAL: FITLRO */}
+      <CustomModal
+        tipo={"expandible"}
+        visible={showModalFiltro}
+        onClose={() => setShowModalFiltro(false)}
+      >
+        <View className="flex-1 p-2 gap-4 justify-center">
+          <Text className="text-primary text-xl font-bold">
+            Filtro
+          </Text>
+        </View>
+      </CustomModal>
       {/* BOTÓN FLOTANTE */}
       <BotonAgregar onPress={handleAgregarInforme}/>
       {/* TOAST */}

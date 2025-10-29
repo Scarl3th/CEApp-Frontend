@@ -4,7 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { Buscador } from "@/components/base/Buscador";
-import { BotonBuscar, BotonRecargar } from "@/components/base/Boton";
+import { BotonBuscar, BotonFiltro, BotonRecargar } from "@/components/base/Boton";
 
 //TÍTULO SECCIÓN
 interface TituloSeccionProps {
@@ -37,6 +37,7 @@ interface TituloProps {
   subtitulo?: string;
   subtituloTamano?: string;
   onPressRecargar?: () => void;
+  onPressFiltro?: () => void;
   onBusquedaChange?: (texto: string) => void;
   show?: boolean;
 }
@@ -45,6 +46,7 @@ export function Titulo({
   subtitulo,
   subtituloTamano = "sm",
   onPressRecargar,
+  onPressFiltro,
   onBusquedaChange,
 }: TituloProps) {
   //ESTADOS
@@ -60,7 +62,9 @@ export function Titulo({
   return (
     <View className="mb-1">
       <View className="w-full flex-row items-center justify-between">
-        {onBusquedaChange ? (
+        {onPressFiltro ? (
+          <BotonFiltro onPress={onPressFiltro}/>
+        ) : onBusquedaChange ? (
           <BotonBuscar onPress={toggleBuscador}/>
         ) : (
           <Ionicons name={Icons["inactivo"].iconName} size={40} color={colors.light}/>

@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
+import { CustomModal } from "@/components/base/Modal";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { CustomToast } from "@/components/base/Toast";
 import { BotonAgregar } from "@/components/base/Boton";
@@ -181,6 +182,7 @@ export function Bitacora() {
   const [error, setError] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
+  const [showModalFiltro, setShowModalFiltro] = useState(false);
   const recargarNuevaEntrada = useRef(recargar === "1");
 
   useEffect(() => {
@@ -274,7 +276,7 @@ export function Bitacora() {
       {/* TÍTULO */}
       <Titulo
         onPressRecargar={() => fetchEntradas(true)}
-        onBusquedaChange={setBusqueda}
+        onPressFiltro={() => setShowModalFiltro(true)}
       >
         Bitácora
       </Titulo>
@@ -294,6 +296,18 @@ export function Bitacora() {
           <EntradasLista entradas={entradasBusqueda}/>
         )}
       </View>
+      {/* MODAL: FITLRO */}
+      <CustomModal
+        tipo={"expandible"}
+        visible={showModalFiltro}
+        onClose={() => setShowModalFiltro(false)}
+      >
+        <View className="flex-1 p-2 gap-4 justify-center">
+          <Text className="text-primary text-xl font-bold">
+            Filtro
+          </Text>
+        </View>
+      </CustomModal>
       {/* BOTÓN FLOTANTE */}
       {isProfesional ? <BotonAgregar onPress={handleAgregar}/> : null}
       {/* TOAST */}
