@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { colors } from "@/constants/colors";
-import { BotonEditar, BotonEditarMini } from "@/components/base/Boton";
+import { BotonEditarMini } from "@/components/base/Boton";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
+import { formatearFechaString} from "@/components/base/FormatearFecha";
 
 const tiposDiscapacidad = [
   {
@@ -59,12 +60,25 @@ const tiposDiscapacidad = [
   },
 ];
 
-const paciente = {
+//PACIENTE
+interface InfoPaciente {
+  nombre: string;
+  fechaNacimiento: Date;
+  edad: number;
+  sexo: string;
+  grado?: number;
+  condiciones_adicionales?: string[];
+  presenta_discapacidad?: boolean;
+  tipo_de_discapacidad?: number;
+}
+
+
+const pacienteObj = {
   nombre: "Emilio Bazaes",
   edad: 7,
   fecha_nacimiento: new Date("2018-05-15T00:00:00Z"),
   sexo: "Masculino",
-  grado: 2, // opcional
+  grado: "Grado 1 - Necesita ayuda", // opcional
   condiciones_adicionales: ["Hipotonía", "Asma"], // opcional
   presenta_discapacidad: true, // opcional
   tipo_de_discapacidad: 2, // opcional
@@ -76,17 +90,44 @@ export function Paciente() {
   const router = useRouter();
   const ruta = decodeURIComponent(usePathname());
   if (!ruta) return null;
-  const { paciente_name, success } = useLocalSearchParams();
-  const ruta_partes = ruta.split("/").filter(Boolean);
-  const rol = ruta_partes[0];
+  const { paciente, success } = useLocalSearchParams();
+  const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
+  const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
   const isProfesional = user?.role === "profesional";
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+  //const [pacienteObj, setPacienteObj] = useState<InfoPaciente | null>;
+
+  //FETCH: PACIENTE
+  const fetchPaciente = async () => {
+    if (!authToken || !refreshToken) return;
+    setIsLoading(true);
+    try {
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[paciente] Obteniendo paciente de la base de datos...");
+      const res = await api.get(`/paciente/${pacienteID}`);
+      setPaciente(res.data);
+      setError(false);
+    } catch(err) {
+      console.log("[medicamentos] Error:", err);
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  //Solo se ejecuta una vez al montar (o si cambian los tokens)
+  useEffect(() => {
+    //fetchPaciente();
+  }, [authToken, refreshToken]);
+  
 
   const discapacidad = tiposDiscapacidad.find(
-    (d) => d.id === paciente.tipo_de_discapacidad
+    (d) => d.id === pacienteObj.tipo_de_discapacidad
   );
 
-  const fechaNacimientoFormateada = paciente.fecha_nacimiento
-    ? paciente.fecha_nacimiento.toLocaleDateString("es-CL", {
+  const fechaNacimientoFormateada = pacienteObj.fecha_nacimiento
+    ? formatearFechaString(pacienteObj.fecha_nacimiento, {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -95,7 +136,6 @@ export function Paciente() {
 
   // Función auxiliar para determinar el ícono correcto
   const getSexoIcon = (sexo) => {
-    // Aseguramos que el valor no sea nulo o indefinido
     const normalizedSexo = (sexo || "").toLowerCase(); 
 
     if (normalizedSexo === "masculino") {
@@ -103,7 +143,6 @@ export function Paciente() {
     } else if (normalizedSexo === "femenino") {
       return "female-outline";
     } else {
-      // Para "Otro", "No registrado", o cualquier otro valor
       return "person-outline"; 
     }
   };
@@ -114,19 +153,22 @@ export function Paciente() {
       value: fechaNacimientoFormateada,
       icon: "calendar-outline",
     },
-    { label: "Edad", value: paciente.edad ?? "No registrado", icon: "time-outline" },
-    { label: "Sexo", value: paciente.sexo ?? "No registrado", icon: getSexoIcon(paciente.sexo) },
+    { label: "Edad", value: pacienteObj.edad ?? "No registrado", icon: "time-outline" },
+    { label: "Sexo", value: pacienteObj.sexo ?? "No registrado", icon: getSexoIcon(pacienteObj.sexo) },
     {
       label: "Grado de autismo",
-      value: paciente.grado ?? "No ingresado",
+      value: pacienteObj.grado ?? "No ingresado",
       icon: "extension-puzzle-outline",
     },
   ];
 
   //HANDLE: EDITAR DATOS
   const handleEditar = () => {
-    console.log("[Paciente] Agregando Evento...")
-    router.push(`/cuidador/${paciente_name}/paciente/paciente-editar`);
+    console.log("[Paciente] Editando paciente...")
+    //router.push(`/cuidador/${paciente_name}/paciente/paciente-editar`);
+    console.log(paciente);
+    console.log(`/cuidador/paciente-agregar?id=${pacienteID}&paciente=${pacienteEncodedNombre}`)
+    router.push(`/cuidador/paciente-agregar?id=${pacienteID}&paciente=${pacienteEncodedNombre}`);
   }
 
   return (
@@ -152,7 +194,7 @@ export function Paciente() {
               className="text-3xl font-bold"
               style={{ color: colors.primary, flexShrink: 1 }}
             >
-              {paciente.nombre}
+              {pacienteObj.nombre}
             </Text>
 
             {!isProfesional && <BotonEditarMini onPress={handleEditar} />}
@@ -209,12 +251,12 @@ export function Paciente() {
               className="flex-col px-4 py-2 rounded-xl"
               style={{
                 backgroundColor:
-                  paciente.presenta_discapacidad && discapacidad
+                  pacienteObj.presenta_discapacidad && discapacidad
                     ? discapacidad.bgColor
                     : colors.lightgrey,
                 borderWidth: 1,
                 borderColor:
-                  paciente.presenta_discapacidad && discapacidad
+                  pacienteObj.presenta_discapacidad && discapacidad
                     ? discapacidad.iconColor
                     : colors.mediumlightgrey,
                 alignItems: "flex-start",
@@ -223,8 +265,8 @@ export function Paciente() {
               <View className="flex-row items-center">
                 <Ionicons
                   name={
-                    paciente.presenta_discapacidad !== null
-                      ? paciente.presenta_discapacidad === true
+                    pacienteObj.presenta_discapacidad !== null
+                      ? pacienteObj.presenta_discapacidad === true
                         ? discapacidad
                           ? discapacidad.icon :
                             "checkmark-outline"
@@ -233,8 +275,8 @@ export function Paciente() {
                   }
                   size={20}
                   color={
-                    paciente.presenta_discapacidad !== null
-                      ? paciente.presenta_discapacidad === true
+                    pacienteObj.presenta_discapacidad !== null
+                      ? pacienteObj.presenta_discapacidad === true
                         ? discapacidad
                           ? discapacidad.iconColor :
                             colors.mediumgreen
@@ -246,13 +288,13 @@ export function Paciente() {
                   className="text-base font-semibold ml-3"
                   style={{
                     color:
-                      paciente.presenta_discapacidad !== null
+                      pacienteObj.presenta_discapacidad !== null
                         ? colors.black
                         : colors.mediumgrey,
                   }}
                 >
-                  {paciente.presenta_discapacidad !== null
-                    ? paciente.presenta_discapacidad === true
+                  {pacienteObj.presenta_discapacidad !== null
+                    ? pacienteObj.presenta_discapacidad === true
                       ? discapacidad
                       ? discapacidad.tipo :
                         "Si presenta"
@@ -261,7 +303,7 @@ export function Paciente() {
                 </Text>
               </View>
 
-              {paciente.presenta_discapacidad === true && discapacidad && (
+              {pacienteObj.presenta_discapacidad === true && discapacidad && (
                 <View className=" py-1">
                   <Text
                     className="text-sm mt-1"
@@ -284,8 +326,8 @@ export function Paciente() {
             >
               Condiciones adicionales:
             </Text>
-            {paciente.condiciones_adicionales?.length > 0 ? (
-              paciente.condiciones_adicionales.map((item, index) => (
+            {pacienteObj.condiciones_adicionales?.length > 0 ? (
+              pacienteObj.condiciones_adicionales.map((item, index) => (
                 <View key={index} className="flex-row items-center mb-1">
                   <Ionicons name="ellipse" size={6} color={colors.mediumdarkgrey} />
                   <Text style={{ color: colors.mediumdarkgrey, marginLeft: 4 }}>

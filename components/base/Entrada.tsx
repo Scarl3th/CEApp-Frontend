@@ -1,5 +1,5 @@
 import { Boton, BotonRadio } from "@/components/base/Boton";
-import { formatearFechaString } from "@/components/base/FormatearFecha";
+import { formatearFechaString , formatearTiempo } from "@/components/base/FormatearFecha";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { CustomModal } from "@/components/base/Modal";
 import { colors } from "@/constants/colors";
@@ -8,8 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { formatearTiempo } from '@/components/base/FormatearFecha';
+import { Alert, Platform, Pressable, ScrollView, Text, TextInput, View, TouchableOpacity, FlatList } from "react-native";
+
 
 function capitalizeFirstLetter(text: string) {
   if (!text) return "";
@@ -268,6 +268,165 @@ export function FormularioCampoSelect({
                       <Text style={{ color: pressed ? colors.mediumdarkgrey : isSelected ? colors.white : colors.mediumdarkgrey }}>
                         {item.titulo}
                       </Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </CustomModal>
+    </View>
+  );
+}
+
+
+interface ExtendedSelectItem {
+  id: string | number;
+  titulo: string;
+  descripcion?: string;
+  icon?: string;
+  color?: string;     // color principal (fondo al seleccionar)
+  iconColor?: string; // color del icono
+  bgColor?: string;
+}
+
+interface FormularioCampoExtendedSelectProps {
+  label: string;
+  items: ExtendedSelectItem[];
+  selectedId?: string | number;
+  onChange: (id: string | number | undefined) => void;
+  placeholder: string;
+  asterisco?: boolean;
+  tipo?: number;
+}
+
+export function FormularioCampoExtendedSelect({
+  label,
+  items,
+  selectedId,
+  onChange,
+  placeholder,
+  asterisco,
+  tipo,
+}: FormularioCampoExtendedSelectProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (id: string | number) => {
+    onChange(id);
+    setOpen(false);
+  };
+
+  const selectedItem = items.find((i) => i.id === selectedId);
+
+  return (
+    <View className="w-full mb-2">
+      <FormularioCampoLabel label={label} asterisco={asterisco} tipo={tipo} />
+
+      {/* Campo visible */}
+      <Pressable onPress={() => setOpen(true)}>
+        {({ pressed }) => (
+          <View
+            className="rounded-lg border px-4 py-3"
+            style={{
+              backgroundColor: pressed
+                ? colors.mediumlightgrey
+                : selectedItem?.color || colors.white,
+              borderColor: pressed
+                ? colors.mediumlightgrey
+                : selectedItem?.color || colors.mediumgrey,
+            }}
+          >
+            <View className="flex-row items-center justify-between">
+              <Text
+                className="flex-1"
+                style={{
+                  color: selectedItem ? colors.white : colors.mediumdarkgrey,
+                  fontWeight: selectedItem ? "600" : "400",
+                }}
+              >
+                {selectedItem ? selectedItem.titulo : placeholder}
+              </Text>
+              <Ionicons
+                name={Icons["derecha"].iconName}
+                size={20}
+                color={selectedItem ? colors.white : colors.mediumdarkgrey}
+              />
+            </View>
+          </View>
+        )}
+      </Pressable>
+
+      {/* Modal */}
+      <CustomModal visible={open} onClose={() => setOpen(false)} tipo="expandible">
+        <View className="flex-1 gap-2">
+          <View className="gap-1">
+            <Text className="text-black text-xl font-bold">{label}</Text>
+            <Text className="text-mediumgrey text-sm">Selecciona una opción</Text>
+          </View>
+
+          <ScrollView className="flex-1">
+            {items.map((item) => {
+              const isSelected = selectedId === item.id;
+              const colorFondo = isSelected ? item.color || colors.primary : colors.white;
+              const colorTexto = isSelected ? colors.white : colors.black;
+
+              return (
+                <Pressable key={item.id} onPress={() => handleSelect(item.id)}>
+                  {({ pressed }) => (
+                    <View
+                      className="rounded-lg p-4 mb-2 flex-row items-start"
+                      style={{
+                        backgroundColor: pressed
+                          ? colors.mediumlightgrey
+                          : colorFondo,
+                        borderWidth: isSelected ? 2 : 1,
+                        borderColor: isSelected
+                          ? item.color || colors.primary
+                          : colors.mediumlightgrey,
+                      }}
+                    >
+                      {/* Icono */}
+                      {item.icon && (
+                        <View
+                          style={{
+                            backgroundColor: item.bgColor || colors.lightgrey,
+                            borderRadius: 30,
+                            padding: 8,
+                            marginRight: 12,
+                          }}
+                        >
+                          <Ionicons
+                            name={item.icon}
+                            size={22}
+                            color={item.iconColor || colors.primary}
+                          />
+                        </View>
+                      )}
+
+                      {/* Texto */}
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            color: colorTexto,
+                            fontWeight: "600",
+                            fontSize: 15,
+                          }}
+                        >
+                          {item.titulo}
+                        </Text>
+                        {item.descripcion && (
+                          <Text
+                            style={{
+                              color: isSelected ? colors.white : colors.mediumdarkgrey,
+                              fontSize: 13,
+                              marginTop: 4,
+                            }}
+                          >
+                            {item.descripcion}
+                          </Text>
+                        )}
+                      </View>
                     </View>
                   )}
                 </Pressable>
@@ -1086,3 +1245,87 @@ export function FormularioCampoInforme({
       </View>
     );
   }
+
+  export interface CampoListaStringsProps {
+    label: string;
+    value: string[];
+    onChange: (value: string[]) => void;
+    tipo: number;
+    asterisco?: boolean;
+    placeholder?: string;
+  }
+
+  export const CampoListaStrings = ({
+    label,
+    value = [],
+    onChange,
+    placeholder = "Agregar elemento...",
+    tipo,
+    asterisco,
+  }: CampoListaStringsProps) => {
+    const [inputValue, setInputValue] = useState("");
+
+    const agregarItem = () => {
+      const texto = inputValue.trim();
+      if (!texto) return;
+      onChange([...value, texto]);
+      setInputValue("");
+    };
+
+    const eliminarItem = (index: number) => {
+      const nuevoValor = value.filter((_, i) => i !== index);
+      onChange(nuevoValor);
+    };
+
+    return (
+      <View className="w-full mb-2">
+        <FormularioCampoLabel label={label} asterisco={asterisco} tipo={tipo} />
+
+        {/* Input para agregar elementos */}
+        <View
+          className="rounded-lg border px-3 py-0"
+          style={{
+            borderColor: colors.mediumgrey,
+            backgroundColor: colors.white,
+          }}
+        >
+          <View className="flex-row items-center gap-2 justify-between">
+            <TextInput
+              value={inputValue}
+              onChangeText={setInputValue}
+              placeholder={placeholder}
+              placeholderTextColor={colors.mediumdarkgrey}
+              onSubmitEditing={agregarItem}
+              style={{ flex: 1 }}
+            />
+            <TouchableOpacity onPress={agregarItem}>
+              <Ionicons name="add-circle-outline" size={22} color={colors.mediumdarkgrey} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Renderizado directo de los ítems */}
+        {value.map((item, index) => (
+          <View
+            key={index}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.primary,
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              marginTop: 8,
+            }}
+          >
+            <Text style={{ flex: 1, color: "white" }}>{item}</Text>
+            <TouchableOpacity onPress={() => eliminarItem(index)}>
+              <Ionicons name="close" size={18} color={colors.white} />
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  

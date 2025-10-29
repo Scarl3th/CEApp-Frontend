@@ -227,7 +227,7 @@ export function EventoFormulario() {
     return () => beforeRemoveListener();
   }, [navigation, titulo, descripcion, hora_inicio, hora_termino, diaSemana, diaMensual, id_plan, id_profesional, color, tipo]);
 
-  const handleDescartarCambios = (path) => {
+  const handleDescartarCambios = (path: any) => {
     if (hayCambios()) {
       Alert.alert(
         "¿Descartar cambios?",
