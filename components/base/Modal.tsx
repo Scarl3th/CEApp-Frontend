@@ -10,7 +10,7 @@ const modalHeight = screenHeight * 0.9;
 interface CustomModalProps {
   tipo: "x" | "-x" | "y" | "-y" | "0" | "1" | "2" | "expandible" | "tutorial";
   visible: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   onCloseOmitir?: boolean;
   children: React.ReactNode;
   fondoColor?: string;
@@ -137,7 +137,7 @@ export function CustomModal({
                 </View>
               )}
             </Pressable>
-          ) : (
+          ) : onClose ? (
         <BotonEsquinaSuperior
           onPress={onClose}
           fondoBoton={fondoColor}
@@ -154,7 +154,7 @@ export function CustomModal({
             "izquierda"
           }
         />
-          )}
+          ) : null}
         <View className="flex-1 p-4 mt-8">
           {children}
         </View>

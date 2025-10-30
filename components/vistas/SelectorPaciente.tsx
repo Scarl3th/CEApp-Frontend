@@ -270,7 +270,6 @@ export function SelectorPaciente() {
       <CustomModal
         tipo={"2"}
         visible={showTerminosYCondiciones}
-        onClose={() => setShowTerminosYCondiciones(false)}
       >
         <TerminosYCondiciones/>
         <View className="flex-row justify-between mt-4">
