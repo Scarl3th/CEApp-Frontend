@@ -5,7 +5,7 @@ import { colors } from "@/constants/colors";
 import { BotonEditarMini } from "@/components/base/Boton";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
-import { formatearFechaString} from "@/components/base/FormatearFecha";
+import { formatearFechaString } from "@/components/base/FormatearFecha";
 
 const tiposDiscapacidad = [
   {
@@ -62,17 +62,19 @@ const tiposDiscapacidad = [
 
 //PACIENTE
 interface InfoPaciente {
+  id: number
   nombre: string;
-  fechaNacimiento: Date;
+  fecha_nacimiento: string;
   edad: number;
   sexo: string;
   grado?: number;
   condiciones_adicionales?: string[];
   presenta_discapacidad?: boolean;
   tipo_de_discapacidad?: number;
+  cuidador: string;
 }
 
-
+/*
 const pacienteObj = {
   nombre: "Emilio Bazaes",
   edad: 7,
@@ -83,6 +85,7 @@ const pacienteObj = {
   presenta_discapacidad: true, // opcional
   tipo_de_discapacidad: 2, // opcional
 };
+*/
 
 export function Paciente() {
 
@@ -96,7 +99,18 @@ export function Paciente() {
   const isProfesional = user?.role === "profesional";
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
-  //const [pacienteObj, setPacienteObj] = useState<InfoPaciente | null>;
+  const [pacienteObj, setPacienteObj] = useState<InfoPaciente>(
+    {
+      nombre: "",
+      edad: 0,
+      fecha_nacimiento: "",
+      sexo: "",
+      grado: null, // opcional
+      condiciones_adicionales: [], // opcional
+      presenta_discapacidad: null, // opcional
+      tipo_de_discapacidad: null, // opcional
+    }
+  );
 
   //FETCH: PACIENTE
   const fetchPaciente = async () => {
@@ -105,11 +119,13 @@ export function Paciente() {
     try {
       const api = createApi(authToken, refreshToken, setAuthToken);
       console.log("[paciente] Obteniendo paciente de la base de datos...");
-      const res = await api.get(`/paciente/${pacienteID}`);
-      setPaciente(res.data);
+      //console.log(`/cuidador-plan-trabajo/${pacienteID}/`)
+      const res = await api.get(`/cuidador-plan-trabajo/${pacienteID}/`);
+      setPacienteObj(res.data);
+      console.log(res.data);
       setError(false);
     } catch(err) {
-      console.log("[medicamentos] Error:", err);
+      console.log("[paciente] Error:", err);
       setError(true);
     } finally {
       setIsLoading(false);
@@ -118,7 +134,7 @@ export function Paciente() {
 
   //Solo se ejecuta una vez al montar (o si cambian los tokens)
   useEffect(() => {
-    //fetchPaciente();
+    fetchPaciente();
   }, [authToken, refreshToken]);
   
 
@@ -127,7 +143,7 @@ export function Paciente() {
   );
 
   const fechaNacimientoFormateada = pacienteObj.fecha_nacimiento
-    ? formatearFechaString(pacienteObj.fecha_nacimiento, {
+    ? formatearFechaString(new Date(`${pacienteObj.fecha_nacimiento}T12:00:00Z`), {
         day: "2-digit",
         month: "long",
         year: "numeric",

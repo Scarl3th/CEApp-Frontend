@@ -98,7 +98,7 @@ export function PacienteFormulario(){
     // ESTADOS
     const [nombre, setNombre] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState<Date | null>(null);
-    const [edad, setEdad] = useState<number | null>(null);
+    //const [edad, setEdad] = useState<number | null>(null);
     const [sexo, setSexo] = useState("");
     const [grado, setGrado] = useState("");
     const [condiciones_adicionales, setCondicionesAdicionales] = useState<string[]>([]);
@@ -128,16 +128,14 @@ export function PacienteFormulario(){
         if (!authToken || !refreshToken) return;
         const api = createApi(authToken, refreshToken, setAuthToken);
         console.log("[paciente-editar] Obteniendo información del paciente:", id);
-        /*
         api
-          .get("/paciente/" + id + "/")
+          .get("/cuidador-plan-trabajo/" + id + "/")
           .then((res: any) => {
             const data = res.data;
             setNombre(data.nombre);
-            setFechaNacimiento(data.fechaNacimiento);
-            setEdad(data.edad);
+            setFechaNacimiento(new Date(`${data.fecha_nacimiento}T12:00:00Z`));
             setSexo(data.sexo);
-            setGrado(data.grado);
+            setGrado(String(data.grado));
             setCondicionesAdicionales(data.condiciones_adicionales);
             setPresentaDiscapacidad(data.presenta_discapacidad);
             setTipoDiscapacidad(data.tipo_de_discapacidad)
@@ -151,14 +149,14 @@ export function PacienteFormulario(){
                 presenta_discapacidad: data.presenta_discapacidad,
                 tipo_de_discapacidad: data.tipo_de_discapacidad
             };
+            //console.log(data);
             setIsLoading(false);
           })
           .catch((err: any) => {
             console.log("[paciente-editar] Error:", err); 
             setIsLoading(false);
           })
-          */
-          setIsLoading(false); //Borrar después
+          //setIsLoading(false); //Borrar después
       }
       else{
         datosIniciales.current = {
@@ -176,14 +174,16 @@ export function PacienteFormulario(){
     }
 
     useEffect(() => {
-        //fetchPaciente();
-      }, [authToken, refreshToken]);
+      if(modoEdicion){
+        fetchPaciente();
+      }
+    }, [authToken, refreshToken]);
     
 
     const hayCambios = () => {
       return (
         nombre != datosIniciales.current.nombre ||
-        edad != datosIniciales.current.edad ||
+        //edad != datosIniciales.current.edad ||
         fechaNacimiento != datosIniciales.current.fechaNacimiento ||
         sexo != datosIniciales.current.sexo ||
         grado != datosIniciales.current.grado ||
@@ -219,7 +219,7 @@ export function PacienteFormulario(){
         );
       });
       return () => beforeRemoveListener();
-    }, [navigation, nombre, edad, fechaNacimiento, sexo, grado, condiciones_adicionales, presenta_discapacidad, tipo_de_discapacidad]);
+    }, [navigation, nombre, fechaNacimiento, sexo, grado, condiciones_adicionales, presenta_discapacidad, tipo_de_discapacidad]);
     
     //DESCARTAR CAMBIOS
     const handleDescartarCambios = () => {
@@ -251,20 +251,19 @@ export function PacienteFormulario(){
     
     // HANDLE: GUARDAR
     const handleGuardar = async () => {
-      if (!nombre || !fechaNacimiento || !sexo || !edad ) {
+      if (!nombre || !fechaNacimiento || !sexo ) {
         Alert.alert("Error", "Por favor, completa todos los campos marcados con *.");
         return;
       }
       setIsLoadingBoton(true);
       const payload = { 
-        nombre,
-        fechaNacimiento,
-        edad,
-        sexo,
-        grado, //Talvez cambiar a number
-        condiciones_adicionales,
-        presenta_discapacidad,
-        tipo_de_discapacidad
+        nombre: nombre,
+        fecha_nacimiento: fechaNacimiento.toISOString().split("T")[0],
+        sexo: sexo,
+        grado: Number(grado),
+        condiciones_adicionales: condiciones_adicionales,
+        presenta_discapacidad: presenta_discapacidad,
+        tipo_de_discapacidad: tipo_de_discapacidad
       }
       console.log("Guardando paciente:", payload);
       
@@ -273,18 +272,16 @@ export function PacienteFormulario(){
 
         if (modoEdicion) {
           console.log("[editar-evento] Editando evento...");
-          //const res = await api.put(`/paciente/${id}/`, payload, { timeout: 5000 });
-          //console.log("[paciente-editar] Respuesta:", res.data);
+          const res = await api.put(`/cuidador-plan-trabajo/${id}/`, payload, { timeout: 5000 });
+          console.log("[paciente-editar] Respuesta:", res.data);
+          router.push(`/cuidador/${id}-${paciente}/paciente?success=1`);
         } else {
           console.log("[agregar-evento] Agregando evento...")
-          //const res = await api.post(`/cuidador-plan-trabajo/`, payload, { timeout: 5000 });
-          //console.log("[paciente-agregar] Respuesta:", res.data);
+          const res = await api.post(`/cuidador-plan-trabajo/`, payload, { timeout: 5000 });
+          console.log("[paciente-agregar] Respuesta:", res.data);
+          router.push("/cuidador?success=1");
         }
-        router.push("/cuidador?success=1");
         
-        //AGREGAR PACIENTE ANTIGUO:
-        //const res = await api.post("/cuidador-plan-trabajo/", { nombre, fechaNacimiento, sexo });
-        //console.log("[Agregar paciente] Respuesta:", res.data);
         
       } catch(err) {
         if(modoEdicion){
@@ -309,114 +306,104 @@ export function PacienteFormulario(){
   
     return (
       <DescartarCambiosContext.Provider value={{ handleDescartarCambios }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={0}
-      >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, padding: 16 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={0}
         >
-          <Titulo>{modoEdicion? "Editar paciente" : "Agregar paciente"}</Titulo>
-          <View className="gap-2">
-            <FormularioCampo
-              label={"Nombre"}
-              value={nombre}
-              onChangeText={setNombre}
-              placeholder={"Ingresa un nombre"}
-              maxLength={255}
-              asterisco={true}
-              tipo={2}
-            />
-            <FormularioCampoFecha
-              fecha={fechaNacimiento}
-              setFecha={setFechaNacimiento}
-              label={"Fecha de nacimiento"}
-              placeholder={"Ingresa fecha de nacimiento"}
-              asterisco={true}
-              tipo={2}
-            />
-            <FormularioCampo
-              label="Edad"
-              value={edad ? edad.toString() : ""}
-              onChangeText={(text) => setEdad(Number(text))}
-              placeholder="Ingresa edad"
-              keyboardType="numeric"
-              asterisco
-              maxLength={3}
-              tipo={2}
-            />
-            <FormularioCampo
-              label={"Sexo"}
-              value={sexo}
-              onChangeText={setSexo}
-              radioButton
-              options={["Masculino", "Femenino", "Otro"]}
-              asterisco={true}
-              tipo={2}
-            />
-            <FormularioCampoSelect
-              label="Grado de Autismo"
-              placeholder="Selecciona un grado"
-              items={gradosAutismo}
-              selectedId={grado}
-              onChange={setGrado}
-              tipo={2}
-            />
-            {/* Condiciones adicionales */}
-            <CampoListaStrings 
-              label="Condiciones Adicionales"
-              value={condiciones_adicionales}
-              onChange={setCondicionesAdicionales}
-              placeholder="Agrega una condición adicional"
-              tipo={2}
-            />
-
-            {/* Presenta Discapacidad */}
-            <FormularioCampoSelect
-              label="Presenta Discapacidad"
-              placeholder="Selecciona una opción"
-              items={opcionesDiscapacidad}
-              selectedId={valorSeleccionado}
-              onChange={(id) => {
-                if (id === "true") setPresentaDiscapacidad(true);
-                else if (id === "false") setPresentaDiscapacidad(false);
-                else setPresentaDiscapacidad(null);
-              }}
-              tipo={2}
-            />
-
-            {/* Tipo de discapacidad */}
-            {presenta_discapacidad &&
-              <FormularioCampoExtendedSelect
-                label="Tipo de discapacidad"
-                placeholder="Selecciona un tipo"
-                items={tiposDiscapacidad.map((t) => ({
-                  id: t.id,
-                  titulo: t.nombre,
-                  descripcion: t.descripcion,
-                  icon: t.icon,
-                  color: t.iconColor,   // color principal
-                  bgColor: t.bgColor,   // fondo del icono
-                  iconColor: t.iconColor,
-                }))}
-                selectedId={tipo_de_discapacidad}
-                onChange={setTipoDiscapacidad}
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, padding: 16 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Titulo>{modoEdicion? "Editar paciente" : "Agregar paciente"}</Titulo>
+            <View className="gap-2">
+              <FormularioCampo
+                label={"Nombre"}
+                value={nombre}
+                onChangeText={setNombre}
+                placeholder={"Ingresa un nombre"}
+                maxLength={255}
+                asterisco={true}
                 tipo={2}
               />
-            }
+              <FormularioCampoFecha
+                fecha={fechaNacimiento}
+                setFecha={setFechaNacimiento}
+                label={"Fecha de nacimiento"}
+                placeholder={"Ingresa fecha de nacimiento"}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampo
+                label={"Sexo"}
+                value={sexo}
+                onChangeText={setSexo}
+                radioButton
+                options={["Masculino", "Femenino", "Otro"]}
+                asterisco={true}
+                tipo={2}
+              />
+              <FormularioCampoSelect
+                label="Grado de Autismo"
+                placeholder="Selecciona un grado"
+                items={gradosAutismo}
+                selectedId={grado}
+                onChange={setGrado}
+                tipo={2}
+              />
+              {/* Condiciones adicionales */}
+              <CampoListaStrings 
+                label="Condiciones Adicionales"
+                value={condiciones_adicionales}
+                onChange={setCondicionesAdicionales}
+                placeholder="Agrega una condición adicional"
+                tipo={2}
+              />
 
-            <Boton
-              texto={"Guardar"}
-              onPress={handleGuardar}
-              isLoading={isLoadingBoton}
-              tipo={3}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              {/* Presenta Discapacidad */}
+              <FormularioCampoSelect
+                label="Presenta Discapacidad"
+                placeholder="Selecciona una opción"
+                items={opcionesDiscapacidad}
+                selectedId={valorSeleccionado}
+                onChange={(id) => {
+                  if (id === "true") setPresentaDiscapacidad(true);
+                  else if (id === "false") setPresentaDiscapacidad(false);
+                  else setPresentaDiscapacidad(null);
+                }}
+                tipo={2}
+              />
+
+              {/* Tipo de discapacidad */}
+              {presenta_discapacidad &&
+                <FormularioCampoExtendedSelect
+                  label="Tipo de discapacidad"
+                  placeholder="Selecciona un tipo"
+                  items={tiposDiscapacidad.map((t) => ({
+                    id: t.id,
+                    titulo: t.nombre,
+                    descripcion: t.descripcion,
+                    icon: t.icon,
+                    color: t.iconColor,   // color principal
+                    bgColor: t.bgColor,   // fondo del icono
+                    iconColor: t.iconColor,
+                  }))}
+                  selectedId={tipo_de_discapacidad}
+                  onChange={setTipoDiscapacidad}
+                  tipo={2}
+                />
+              }
+
+              <Boton
+                texto={"Guardar"}
+                onPress={handleGuardar}
+                isLoading={isLoadingBoton}
+                tipo={3}
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </DescartarCambiosContext.Provider>
     );
 
