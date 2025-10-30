@@ -85,7 +85,8 @@ Algunas consideraciones para generar el apk:
 * Escanear el código QR de la consola desde la app.
 * Listo! debería funcionar igual que como funciona con Expo Go de aquí en adelante (espero)
 
-
+### Extra
+* Añadir "expo-font" al apartado "plugins" en app.config.js 
 
 
 

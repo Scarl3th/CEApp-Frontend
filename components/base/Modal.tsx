@@ -17,6 +17,7 @@ interface CustomModalProps {
   iconoColor?: string;
   bordeColor?: string;
   tipoTutorialHeight?: number;
+  padding?: string;
 }
 
 export function CustomModal({
@@ -29,6 +30,7 @@ export function CustomModal({
   iconoColor = colors.black,
   bordeColor,
   tipoTutorialHeight = 0.6,
+  padding = "p-4",
 }: CustomModalProps) {
 
   if (!visible) return null;
@@ -155,7 +157,7 @@ export function CustomModal({
           }
         />
           ) : null}
-        <View className="flex-1 p-4 mt-8">
+        <View className={`flex-1 ${padding} mt-8`}>
           {children}
         </View>
       </SafeAreaView>
@@ -218,16 +220,16 @@ export function CustomModal({
                 </View>
               )}
             </Pressable>
-          ) : (
+          ) : onClose ? (
             <BotonEsquinaSuperior
               tipo="derecha"
               onPress={onClose}
               iconName="close"
               color={iconoColor}
             />
-          )}
+          ) : null}
           <ScrollView showsVerticalScrollIndicator={false}>
-            <View className="flex-1 p-4 mt-8">
+            <View className={`flex-1 ${padding} mt-8`}>
               {children}
             </View>
           </ScrollView>

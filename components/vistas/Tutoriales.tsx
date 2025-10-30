@@ -2,6 +2,7 @@ import { useState } from "react";
 import { usePathname } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { useFonts, Poppins_500Medium, Poppins_800ExtraBold } from "@expo-google-fonts/poppins";
 import { colors } from "@/constants/colors";
 import { images } from "@/constants/images";
 import { Titulo } from "@/components/base/Titulo";
@@ -10,6 +11,7 @@ import { CustomModal } from "@/components/base/Modal";
 import { TarjetaOpcion } from "@/components/base/Tarjeta";
 import { BotonEsquinaSuperior } from "@/components/base/Boton";
 import { PacienteItem } from "@/components/vistas/SelectorPaciente";
+import { Header, HeaderPaciente } from "@/components/layout/Header";
 
 //TUTORIALES
 export interface Tutoriales {
@@ -115,9 +117,9 @@ export function Tutoriales() {
             iconoFondoColor={colors.primary}
             tarjetaColor={colors.lightgrey}
             onPress={() => {
-            setShowTutorialChat(true);
-            setShowTutorial(true);
-          }}
+              setShowTutorialChat(true);
+              setShowTutorial(true);
+            }}
           />
         )}
         <TarjetaOpcion
@@ -274,8 +276,10 @@ export function ModalTutorial({
       //ACÁ PUEDES CAMBIAR LA ALTURA DEL MODAL DE CADA VISTA
       tipoTutorialHeight={
         selectorPaciente ? 0.7 :
+        inicio ? 0.8 :
         0.7
       }
+      padding={"p-0"}
     >
       {selectorPaciente ? (
         <TutorialSelectorPaciente onClose={onClose} rol={rol}/>
@@ -314,9 +318,9 @@ function FooterTutorial({
   onClose,
 }: FooterTutorialProps) {
   return (
-    <View className="mt-8 w-full items-center">
+    <View className="mt-8 px-4 w-full">
       {/* PUNTOS */}
-      <View className="flex-row space-x-2 absolute top-0 left-1/2 -translate-x-1/2">
+      <View className="flex-row justify-center space-x-2 mb-4">
         {Array.from({ length: pasosTotales }).map((_, index) => (
           <View
             key={index}
@@ -328,14 +332,14 @@ function FooterTutorial({
         ))}
       </View>
       {/* BOTONES */}
-      <View className="mt-8 w-full flex-row gap-3">
-        {/* BOTÓN: ATRÁS */}
-        {paso > 0 ? (
-          <Pressable onPress={() => setPaso((prev) => prev - 1)} className="flex-1">
+      <View className="flex-row w-full gap-3">
+        {/* BOTÓN ATRÁS */}
+        {paso > 0 && (
+          <Pressable onPress={() => setPaso(prev => prev - 1)} className="flex-1">
             {({ pressed }) => (
               <View
-                className={"w-full rounded-lg px-2 py-3"}
-                style = {{
+                className="w-full rounded-lg px-2 py-3"
+                style={{
                   backgroundColor: pressed ? colors.mediumlightgrey : colors.white,
                   borderWidth: 1,
                   borderColor: pressed ? colors.mediumlightgrey : colors.secondary,
@@ -347,33 +351,40 @@ function FooterTutorial({
               </View>
             )}
           </Pressable>
-        ) : null}
-        {/* BOTÓN: SIGUIENTE */}
-        <Pressable onPress={() => {
-          if (paso === pasosTotales - 1) {
-            onClose();
-          } else {
-            setPaso((prev) => prev + 1);
-          }
-        }} className="flex-1">
+        )}
+        {/* BOTÓN SIGUIENTE */}
+        <Pressable
+          onPress={() => {
+            if (paso === pasosTotales - 1) {
+              onClose();
+            } else {
+              setPaso(prev => prev + 1);
+            }
+          }}
+          className="flex-1"
+        >
           {({ pressed }) => (
             <View
-              className={"w-full rounded-lg px-2 py-3"}
-              style = {{
+              className="w-full rounded-lg px-2 py-3"
+              style={{
                 backgroundColor: pressed ? colors.mediumlightgrey : colors.secondary,
                 borderWidth: 1,
                 borderColor: pressed ? colors.mediumlightgrey : colors.secondary,
               }}
             >
               <Text className="text-white font-bold text-base text-center">
-                {paso === 0 ? "Iniciar tutorial" : paso === pasosTotales - 1 ? "Finalizar tutorial" : "Siguiente"}
+                {paso === 0
+                  ? "Iniciar tutorial"
+                  : paso === pasosTotales - 1
+                  ? "Finalizar tutorial"
+                  : "Siguiente"}
               </Text>
             </View>
           )}
         </Pressable>
       </View>
     </View>
-  )
+  );
 }
 
 //TEXTO: TUTORIAL
@@ -384,7 +395,7 @@ export function TextoTutorial({
   children,
 }: TextoTutorialProps) {
   return (
-    <Text className="text-mediumdarkgrey text-base font-medium text-justify leading-relaxed">
+    <Text className="text-mediumdarkgrey text-lg font-medium leading-relaxed">
       {children}
     </Text>
   )
@@ -410,6 +421,148 @@ export function BotonAgregarTutorial({
       }}
     >
       <Ionicons name={iconoNombre} size={iconoTamano} color={colors.white} />
+    </View>
+  );
+}
+
+//TUTORIAL: INICIO
+interface TutorialInicioProps {
+  onClose: () => void;
+  rol: string;
+}
+export function TutorialInicio({
+  onClose,
+  rol,
+}: TutorialInicioProps) {
+  const [fontsLoaded] = useFonts({
+    Poppins_500Medium,
+    Poppins_800ExtraBold,
+  });
+  const [paso, setPaso] = useState(0);
+  const pasosTotales = 6;
+  return (
+    <View className="flex-1 py-8 gap-4">
+      {/* BANNER */}
+      <View
+        className={`flex-1 w-full ${paso == 0 || paso == 5 ? "items-end" : "items-center"} justify-center`}
+        style={{
+          backgroundColor: colors.primary,
+          minHeight: 200,
+          maxHeight: 200,
+          position: paso == 0 || paso == 5 ? "relative" : undefined, 
+        }}
+        pointerEvents="none"
+      >
+        {paso == 0 || paso == 5 ? (
+          <>
+            <Image
+              source={images.CEO}
+              style={{
+                width: 180,
+                height: 180,
+                resizeMode: "contain",
+                position: "absolute",
+                top: 30,
+                left: 16,
+              }}
+            />
+            <View className="flex-1 p-4">
+              <View className="flex-1 items-end justify-center">
+                <Text className="text-white text-xl text-right" style={{ fontFamily: "Poppins_500Medium" }}>¡Bienvenid@ a</Text>
+                <Text className="text-white text-4xl text-right">
+                  <Text style={{ fontFamily: "Poppins_800ExtraBold" }}>CEA</Text>
+                  <Text style={{ fontFamily: "Poppins_500Medium" }}>pp!</Text>
+                </Text>
+              </View>
+            </View>
+          </>
+        ) : paso == 1 ? (
+          <Ionicons name={Icons["inicio"].iconName} color={colors.white} size={100}/>
+        ) : paso == 2 ? (
+          <View className="w-full">
+            <HeaderPaciente nombre={"Santiago González"}/>
+          </View>
+        ) : paso == 3 ? (
+          <Ionicons name={Icons["menu"].iconName} color={colors.white} size={100}/>
+        ) : paso == 4 ? (
+          <Ionicons name={Icons["tutoriales"].iconName} color={colors.white} size={100}/>
+        ) : null}
+      </View>
+      {/* CUERPO */}
+      <View className="flex-1 p-4 justify-start">
+        {/* TÍTULO */}
+        {paso == 0 || paso == 5 ? (
+          null
+        ) : (
+          <Titulo>
+            {paso == 1 ? "Inicio" :
+            paso == 2 ? "Paciente" :
+            paso == 3 ? "Navegación" :
+            paso == 4 ? "Tutoriales" :
+            `Paso ${paso}`}
+          </Titulo>
+        )}
+        {/* TEXTO */}
+        <View className="px-4 gap-4 flex-column">
+          {paso == 0 ? (
+            <>
+              <TextoTutorial>
+                Soy <Text className="font-bold text-primary">CEO</Text>, tu guía dentro de CEApp.
+              </TextoTutorial>
+              <TextoTutorial>
+                <Text className="font-bold text-primary">CEApp</Text> es una plataforma diseñada para potenciar el trabajo colaborativo en el cuidado de personas con autismo.
+              </TextoTutorial>
+              <TextoTutorial>
+                Este es tu <Text className="font-bold text-primary">inicio</Text>, el punto de partida donde tendrás todo a mano.
+              </TextoTutorial>
+            </>
+          ) : paso == 1 ? (
+            <>
+              <TextoTutorial>En la pantalla de inicio encontrarás:</TextoTutorial>
+              <TextoTutorial>• Atajos a acciones y herramientas importantes.</TextoTutorial>
+              <TextoTutorial>• Métricas sobre el progreso de tu paciente.</TextoTutorial>
+            </>
+          ) : paso == 2 ? (
+            <>
+              <TextoTutorial>Debajo del encabezado, verás una barra roja que muestra el paciente cuyo plan de trabajo estás revisando.</TextoTutorial>
+              <TextoTutorial>Puedes presionar la barra roja para:</TextoTutorial>
+              <TextoTutorial>• Ver información del paciente.</TextoTutorial>
+              <TextoTutorial>• Cambiar de paciente.</TextoTutorial>
+            </>
+          ) : paso == 3 ? (
+            <>
+              <TextoTutorial>
+                En cualquier momento, puedes navegar entre pantallas presionando el botón <Ionicons name={Icons["menu"].iconName} size={16}/>, ubicado en la esquina superior izquierda.
+              </TextoTutorial>
+            </>
+          ) : paso == 4 ? (
+            <>
+              <TextoTutorial>
+                Incluimos tutoriales para la mayoría de nuestras herramientas.
+              </TextoTutorial>
+              <TextoTutorial>
+                En cualquier momento, puedes volver a revisar el tutorial presionando el botón <Ionicons name={Icons["tutoriales"].iconName} size={16}/>, ubicado en la esquina superior derecha.
+              </TextoTutorial>
+            </>
+          ) : paso == 5 ? (
+            <>
+              <TextoTutorial>
+                ¡Tutorial completado! 👏
+              </TextoTutorial>
+              <TextoTutorial>
+                Explora CEApp a tu ritmo y prueba todas sus herramientas.
+              </TextoTutorial>
+            </>
+          ) : null}
+        </View>
+      </View>
+      {/* FOOTER */}
+      <FooterTutorial
+        paso={paso}
+        setPaso={setPaso}
+        pasosTotales={pasosTotales}
+        onClose={onClose}
+      />
     </View>
   );
 }
@@ -475,126 +628,6 @@ export function TutorialSelectorPaciente({
               <TextoTutorial>
                 ¡Bienvenid@ a CEApp!
               </TextoTutorial>
-              <TextoTutorial>
-                En esta pantalla podrás seleccionar un paciente o crear uno nuevo para comenzar a usar la aplicación.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "cuidador" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Completa los datos solicitados en el formulario.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Confirma para crear un nuevo paciente.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "profesional" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Completa los datos solicitados en el formulario.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Confirma para crear un nuevo paciente.
-              </TextoTutorial>
-            </>
-          ) : paso == 2 ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Completa los datos solicitados en el formulario.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Confirma para crear un nuevo paciente.
-              </TextoTutorial>
-            </>
-          ) : null}
-        </View>
-      </View>
-      {/* FOOTER */}
-      <FooterTutorial
-        paso={paso}
-        setPaso={setPaso}
-        pasosTotales={pasosTotales}
-        onClose={onClose}
-      />
-    </View>
-  );
-}
-
-//TUTORIAL: INICIO
-interface TutorialInicioProps {
-  onClose: () => void;
-  rol: string;
-}
-export function TutorialInicio({
-  onClose,
-  rol,
-}: TutorialInicioProps) {
-  const [paso, setPaso] = useState(0);
-  const pasosTotales = 3;
-  return (
-    <View className="flex-1 px-4 py-6">
-      <View className="flex-1 items-center justify-start gap-4" pointerEvents="none">
-        {/* TÍTULO */}
-        <Titulo
-          subtitulo={
-            paso == 1 ? "Agregar un paciente" :
-            paso == 2 ? "Seleccionar un paciente" :
-            undefined
-          }
-          subtituloTamano={"base"}
-        >
-          {
-            paso == 0 ? "Inicio" :
-            paso > 0 ? `Paso ${paso}` :
-            ""
-          }
-        </Titulo>
-        {/* IMAGEN */}
-        <View
-          className="flex-1 w-full items-center justify-center"
-          style={{
-            height: 160,
-          }}
-        >
-          {paso == 0 ? (
-            <Image
-              source={images.CEO}
-              style={{
-                width: Platform.OS === "web" ? 40 : 160,
-                height: Platform.OS === "web" ? 40 : 160,
-              }}
-              resizeMode={"contain"}
-            />
-          ) : paso == 1 ? (
-            <BotonAgregarTutorial/>
-          ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
-              <PacienteItem
-                paciente={{
-                  id: "1",
-                  nombre: "Santiago González",
-                  cuidador: "María González",
-                }}
-                isProfesional={rol === "profesional"}
-              />
-            </View>
-          ) : null}
-        </View>
-        {/* TEXTO */}
-        <View className="flex-column gap-1">
-          {paso == 0 ? (
-            <>
-              <TextoTutorial>
-                ¡Bienvenid@ a CEApp!</TextoTutorial>
               <TextoTutorial>
                 En esta pantalla podrás seleccionar un paciente o crear uno nuevo para comenzar a usar la aplicación.
               </TextoTutorial>
