@@ -57,6 +57,7 @@ export type IconType =
     | "help-circle-outline"
     | "reader-outline"
     | "filter-circle"
+    | "file-tray-full-outline"
 ;
 
 export const Icons: Record<
@@ -120,5 +121,6 @@ export const Icons: Record<
   progresion: { iconName: "trending-up", label: "ver", description: "" },
   tutoriales: { iconName: "help-circle-outline", label: "Tutoriales", description: "Guías rápidas para aprender a usar CEApp" },
   accesos: { iconName: "reader-outline", label: "Accesos", description: "Historial de accesos y acciones" },
-  filtro_circulo: { iconName: "filter-circle", label: "Filtro", description: "" }
+  filtro_circulo: { iconName: "filter-circle", label: "Filtro", description: "" },
+  terminos_y_condiciones: { iconName: "file-tray-full-outline", label: "Términos y condiciones", description: ""}
 };

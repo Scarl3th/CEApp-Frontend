@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { Titulo } from "@/components/base/Titulo";
+import { CustomModal } from "@/components/base/Modal";
 import { CustomToast } from "@/components/base/Toast";
 import { Buscador } from "@/components/base/Buscador";
-import { BotonAgregar } from "@/components/base/Boton";
 import { TarjetaSelector } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
+import { Boton, BotonAgregar } from "@/components/base/Boton";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
+import { TerminosYCondiciones } from "@/components/vistas/TerminosYCondiciones";
 
 //PACIENTE
 interface Paciente {
@@ -96,8 +98,10 @@ export function SelectorPaciente() {
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showTerminosYCondiciones, setShowTerminosYCondiciones] = useState(false);
 
   useEffect(() => {
+    fetchTerminosYCondiciones();
     fetchTutoriales();
     fetchPacientes();
   }, [authToken, refreshToken]);
@@ -113,6 +117,28 @@ export function SelectorPaciente() {
       setToast({ text1: "Inicio de sesión exitoso.", type: "success" });
     }
   }, [loginSuccess]);
+
+  //FETCH: TÉRMINOS Y CONDICIONES
+  const fetchTerminosYCondiciones = async () => {
+    if (!authToken || !refreshToken) return;
+    setIsLoading(true);
+    try {
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[selector-paciente] Obteniendo términos y condiciones de la base de datos...");
+      const res = await api.get("/terminos-y-condiciones/");
+      if (!res.data.terminos_y_condiciones) {
+        setShowTerminosYCondiciones(true);
+      } else {
+        console.log("[selector-paciente] Términos y condiciones visto...");
+      }
+      setIsLoading(false);
+      setError(false);
+    } catch (err) {
+      console.log("[selector-paciente] Error:", err);
+      setIsLoading(false);
+      setError(true);
+    }
+  }
 
   //FETCH: TUTORIAL
   const fetchTutoriales = async () => {
@@ -202,7 +228,7 @@ export function SelectorPaciente() {
         {/* TÍTULO */}
         <Titulo>
           {`¡Bienvenid@, ${primer_nombre}! 👋`}
-          </Titulo>
+        </Titulo>
         <Text className="text-base text-secondary font-bold pb-4">
           Selecciona un paciente para comenzar:
         </Text>
@@ -240,6 +266,66 @@ export function SelectorPaciente() {
           </>
         )}
       </View>
+      {/* TÉRMINOS Y CONDICIONES */}
+      <CustomModal
+        tipo={"2"}
+        visible={showTerminosYCondiciones}
+        onClose={() => setShowTerminosYCondiciones(false)}
+      >
+        <TerminosYCondiciones/>
+        <View className="flex-row justify-between mt-4">
+          {/* BOTÓN: RECHAZAR */}
+          <Pressable
+            onPress={() => {
+              setShowTerminosYCondiciones(false);
+              router.replace("/login");
+            }}
+            className="flex-1 mr-2"
+          >
+            {({ pressed }) => (
+              <View
+                className="py-3 rounded-lg items-center justify-center"
+                style={{
+                  backgroundColor: pressed ? colors.mediumlightgrey : colors.lightgrey,
+                  borderWidth: 1,
+                  borderColor: colors.primary,
+                }}
+              >
+                <Text className="text-primary font-bold text-base">Rechazar</Text>
+              </View>
+            )}
+          </Pressable>
+          {/* BOTÓN: ACEPTAR */}
+          <Pressable
+            onPress={async () => {
+              try {
+                const api = createApi(authToken, refreshToken, setAuthToken);
+                await api.patch("/terminos-y-condiciones/", { terminos_y_condiciones: true });
+                setShowTerminosYCondiciones(false);
+              } catch (err) {
+                console.log("[selector-paciente] Error:", err);
+              }
+            }}
+            className="flex-1 ml-2"
+          >
+            {({ pressed }) => (
+              <View
+                className="py-3 rounded-lg items-center justify-center"
+                style={{
+                  backgroundColor: pressed ? colors.mediumlightgrey : colors.primary,
+                  borderWidth: 1,
+                  borderColor: colors.primary,
+                }}
+              >
+                <Text className="text-white font-bold text-base">Aceptar</Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
+
+
+
+      </CustomModal>
       {/* TUTORIAL */}
       <ModalTutorial
         tipo={"tutorial"}

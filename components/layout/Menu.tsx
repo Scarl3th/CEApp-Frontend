@@ -46,6 +46,7 @@ export function Menu({ visible, onClose, paciente }) {
     { route: `equipo`, iconName: Icons["equipo"].iconName, label: Icons["equipo"].label, roles: ["profesional","cuidador"] },
     { route: `accesos`, iconName: Icons["accesos"].iconName, label: Icons["accesos"].label, roles: ["cuidador"] },
     { route: `tutoriales`, iconName: Icons["tutoriales"].iconName, label: Icons["tutoriales"].label, roles: ["profesional","cuidador"] },
+    { route: `terminos-y-condiciones`, iconName: Icons["terminos_y_condiciones"].iconName, label: Icons["terminos_y_condiciones"].label, roles: ["profesional","cuidador"] },
   ];
 
   //VISTA

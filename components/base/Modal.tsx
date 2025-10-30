@@ -143,7 +143,7 @@ export function CustomModal({
           fondoBoton={fondoColor}
           iconName={"close"}
           color={iconoColor}
-          top={tipo === "-x" ? 30 : 10}
+          top={tipo === "-x" ? 30 : tipo === "2" ? 30 : 10}
           tipo={
             tipo === "-x" ? "izquierda" :
             tipo === "x" ? "derecha" :
