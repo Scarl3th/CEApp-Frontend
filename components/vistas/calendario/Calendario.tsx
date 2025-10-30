@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { getDay, format, parseISO } from "date-fns";
 import { Calendar, LocaleConfig } from "react-native-calendars";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
@@ -12,6 +13,7 @@ import { CustomToast } from "@/components/base/Toast";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 import { BotonAgregar, BotonEditar, BotonEliminar } from "@/components/base/Boton";
 
 //CALENDARIO EN ESPAÑOL
@@ -65,8 +67,10 @@ export function Calendario() {
   const [selectedDate, setSelectedDate] = useState("");
   const [markedDates, setMarkedDates] = useState({});
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
+    fetchTutoriales();
     fetchEventos();
   }, [authToken, refreshToken]);
 
@@ -90,7 +94,47 @@ export function Calendario() {
       handleMonthChange({ year: today.getFullYear(), month: today.getMonth() + 1 });
     }
   }, [eventos]);
-
+  
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[calendario] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[calendario] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[calendario] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_calendario) {
+        console.log("[calendario] Tutorial no visto...");
+        console.log("[calendario] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[calendario] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_calendario: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_calendario: true };
+        console.log("[calendario] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[calendario] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[calendario] Error:", err);
+      setError(true);
+    }
+  };
+  
   //FETCH: EVENTOS
   const fetchEventos = async () => {
     if (!authToken || !refreshToken) return;
@@ -99,7 +143,6 @@ export function Calendario() {
     try {
       const api = createApi(authToken, refreshToken, setAuthToken);
       const res = await api.get(`eventos/`);
-      console.log("[calendario] Respuesta:", res.data);
       setEventos(res.data);
       setIsLoading(false);
       setError(false);
@@ -366,6 +409,14 @@ export function Calendario() {
           )}
         </>
       )}
+      {/* TUTORIAL */}
+      <ModalTutorial
+        tipo={"tutorial"}
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        calendario={true}
+        rol={rol}
+      />
       {/* TOAST */}
       {toast && (
         <CustomToast

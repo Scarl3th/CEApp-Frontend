@@ -45,7 +45,7 @@ export function CustomModal({
     <Modal visible={visible} transparent animationType="none">
       <Pressable
         style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.40)" }}
-        onPress={onClose}
+        onPress={onCloseOmitir ? undefined : onClose}
       />
       <SafeAreaView
         style={{

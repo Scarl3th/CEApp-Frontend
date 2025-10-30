@@ -1,8 +1,8 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Alert, FlatList, View } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
@@ -13,6 +13,7 @@ import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaString } from "@/components/base/FormatearFecha";
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 import { TarjetaExpandible, TarjetaSelector } from "@/components/base/Tarjeta";
 import { ObjetivosEspecificosModal } from "@/components/vistas/plan/ObjetivosEspecificos";
 import { BotonAgregar, BotonDetalles, BotonEditar, BotonEliminar, BotonProgreso, BotonTab } from "@/components/base/Boton";
@@ -222,6 +223,10 @@ export function Plan() {
   const { paciente, recargar, success } = useLocalSearchParams();
   const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
   const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
+  const ruta = decodeURIComponent(usePathname());
+  if (!ruta) return null;
+  const ruta_partes = ruta.split("/").filter(Boolean);
+  const rol = ruta_partes[0];
 
   //ALMACENAMIENTO LOCAL
   const datosObjetivosGeneralesAlmacenamiento = `plan_objetivos_general_${pacienteID}`;
@@ -233,8 +238,8 @@ export function Plan() {
   const [error, setError] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
   const recargarObjetivosGenerales = useRef(recargar === "1");
-
   const [selectedTab, setSelectedTab] = useState<"enprogreso" | "completados">("enprogreso");
 
   useEffect(() => {
@@ -244,8 +249,49 @@ export function Plan() {
   }, [success]);
 
   useEffect(() => {
+    fetchTutoriales();
     fetchObjetivosGenerales();
   },[authToken, refreshToken]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[plan] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[plan] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[plan] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_plan) {
+        console.log("[plan] Tutorial no visto...");
+        console.log("[plan] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[plan] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_plan: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_plan: true };
+        console.log("[plan] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[plan] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[plan] Error:", err);
+      setError(true);
+    }
+  };
   
   //FETCH: OBJETIVOS GENERALES
   const fetchObjetivosGenerales = async (recargarForzar = false) => {
@@ -405,6 +451,14 @@ export function Plan() {
           ) : null}
         </>
       )}
+      {/* TUTORIAL */}
+      <ModalTutorial
+        tipo={"tutorial"}
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        plan={true}
+        rol={rol}
+      />
       {/* BOTONES FLOTANTES */}
       {isProfesional ? <BotonAgregar onPress={handleAgregarObjetivoGeneral} /> : null}
       <BotonProgreso onPress={handleProgreso}/>

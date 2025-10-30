@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FlatList, Text, View } from "react-native";
-import { Link, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Link, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
@@ -13,21 +13,7 @@ import { BotonAgregar } from "@/components/base/Boton";
 import { TarjetaSelector } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
-import { ModalTutorial } from "@/components/vistas/Tutoriales";
-
-//TUTORIALES
-interface Tutoriales {
-  id: string;
-  tutorial_selector_paciente: boolean;
-  tutorial_inicio: boolean;
-  tutorial_plan: boolean;
-  tutorial_progreso: boolean;
-  tutorial_bitacora: boolean;
-  tutorial_chat: boolean;
-  tutorial_informes: boolean;
-  tutorial_calendario: boolean;
-  tutorial_medicamentos: boolean;
-}
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 
 //PACIENTE
 interface Paciente {
@@ -112,8 +98,8 @@ export function SelectorPaciente() {
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    fetchPacientes();
     fetchTutoriales();
+    fetchPacientes();
   }, [authToken, refreshToken]);
 
   useEffect(() => {
@@ -127,6 +113,46 @@ export function SelectorPaciente() {
       setToast({ text1: "Inicio de sesión exitoso.", type: "success" });
     }
   }, [loginSuccess]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[selector-paciente] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[selector-paciente] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[selector-paciente] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_selector_paciente) {
+        console.log("[selector-paciente] Tutorial no visto...");
+        console.log("[selector-paciente] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[selector-paciente] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_selector_paciente: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_selector_paciente: true };
+        console.log("[selector-paciente] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[selector-paciente] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[selector-paciente] Error:", err);
+      setError(true);
+    }
+  };
 
   //FETCH: PACIENTES
   const fetchPacientes = async () => {
@@ -157,49 +183,6 @@ export function SelectorPaciente() {
       router.push(`/cuidador/paciente-agregar`);
     }
   }
-
-  //FETCH: TUTORIAL
-  const fetchTutoriales = async () => {
-    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
-    if (!authToken || !refreshToken) return;
-    setIsLoading(true);
-    try {
-      //FETCH: TUTORIAL
-      const api = createApi(authToken, refreshToken, setAuthToken);
-      console.log("[selector-paciente] Obteniendo tutoriales en almacenamiento local...");
-      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
-      let tutorialesAlmacenamientoDatos: Tutoriales;
-      if (tutorialesAlmacenamientoLocal) {
-        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
-      } else {
-        console.log("[selector-paciente] No se encontraron tutoriales en el almacenamiento local...");
-        console.log("[selector-paciente] Obteniendo tutoriales de la base de datos...");
-        const res = await api.get("/tutoriales/");
-        tutorialesAlmacenamientoDatos = res.data;
-        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
-      }
-      //HANDLE: TUTORIAL
-      if (!tutorialesAlmacenamientoDatos.tutorial_selector_paciente) {
-        console.log("[selector-paciente] Tutorial no visto...");
-        console.log("[selector-paciente] Activando tutorial...");
-        setShowTutorial(true);
-        console.log("[selector-paciente] Actualizando tutorial en la base de datos...");
-        await api.patch("/tutoriales/", { tutorial_selector_paciente: true });
-        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_selector_paciente: true };
-        console.log("[selector-paciente] Actualizando tutorial en almacenamiento local...");
-        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
-      }
-      else {
-        console.log("[selector-paciente] Tutorial visto...");
-      }
-      setIsLoading(false);
-      setError(false);
-    } catch (err) {
-      console.log("[selector-paciente] Error:", err);
-      setIsLoading(false);
-      setError(true);
-    }
-  };
 
   //FILTRO
   const pacientesFiltrados = pacientes.filter((paciente) => {

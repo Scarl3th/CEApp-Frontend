@@ -1,6 +1,6 @@
 import { FlatList, Text, View } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
@@ -14,6 +14,7 @@ import { TarjetaExpandible } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 import { formatearFechaString, formatearTiempo } from "@/components/base/FormatearFecha";
 
 //ENTRADA
@@ -171,6 +172,10 @@ export function Bitacora() {
   const { paciente, recargar, success } = useLocalSearchParams();
   const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
   const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
+  const ruta = decodeURIComponent(usePathname());
+  if (!ruta) return null;
+  const ruta_partes = ruta.split("/").filter(Boolean);
+  const rol = ruta_partes[0];
 
   //ALMACENAMIENTO LOCAL
   const datosAlmacenamiento = `bitacora_${pacienteID}`;
@@ -183,9 +188,11 @@ export function Bitacora() {
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
   const [showModalFiltro, setShowModalFiltro] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const recargarNuevaEntrada = useRef(recargar === "1");
 
   useEffect(() => {
+    fetchTutoriales();
     fetchEntradas();
   }, [authToken, refreshToken]);
 
@@ -194,6 +201,46 @@ export function Bitacora() {
       setToast({ text1: "Entrada guardada exitosamente.", type: "success" });
     }
   }, [success]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[bitácora] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[bitacora] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[bitácora] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_bitacora) {
+        console.log("[bitácora] Tutorial no visto...");
+        console.log("[bitácora] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[bitácora] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_bitacora: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_bitacora: true };
+        console.log("[bitácora] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[bitácora] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[bitácora] Error:", err);
+      setError(true);
+    }
+  };
 
   //FETCH: ENTRADAS
   const fetchEntradas = async (forzarRecargar = false) => {
@@ -308,6 +355,14 @@ export function Bitacora() {
           </Text>
         </View>
       </CustomModal>
+      {/* TUTORIAL */}
+      <ModalTutorial
+        tipo={"tutorial"}
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        bitacora={true}
+        rol={rol}
+      />
       {/* BOTÓN FLOTANTE */}
       {isProfesional ? <BotonAgregar onPress={handleAgregar}/> : null}
       {/* TOAST */}

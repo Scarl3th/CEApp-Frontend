@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Text, View } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/auth";
 import { colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +11,7 @@ import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaString } from "@/components/base/FormatearFecha";
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 import { BotonAgregar, BotonEditar, BotonEliminar, BotonTab } from "@/components/base/Boton";
 
 //MEDICAMENTO
@@ -58,6 +60,9 @@ export function Medicamentos() {
   const [selectedTab, setSelectedTab] = useState<number>(today);
   const [medicamentos, setMedicamentos] = useState([]);
   const isProfesional = user?.role === "profesional";
+  const ruta = decodeURIComponent(usePathname());
+  const ruta_partes = ruta.split("/").filter(Boolean);
+  const rol = ruta_partes[0];
 
   //ESTADOS
   //const [observaciones, setObservaciones] = useState<Observacion[]>([]);
@@ -65,14 +70,61 @@ export function Medicamentos() {
   const [error, setError] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
  
   const medicamentosFiltrados = medicamentos.filter((medicamento) => medicamento.dias.includes(selectedTab));
 
-   useEffect(() => {
+  //Solo se ejecuta una vez al montar (o si cambian los tokens)
+  useEffect(() => {
+    fetchTutoriales();
+    fetchMedicamentos();
+  }, [authToken, refreshToken]);
+
+  useEffect(() => {
     if (success) {
       setToast({ text1: "Medicamento guardado exitosamente.", type: "success" });
     }
   }, [success]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[medicamentos] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[medicamentos] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[medicamentos] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_medicamentos) {
+        console.log("[medicamentos] Tutorial no visto...");
+        console.log("[medicamentos] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[medicamentos] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_medicamentos: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_medicamentos: true };
+        console.log("[medicamentos] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[medicamentos] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[medicamentos] Error:", err);
+      setError(true);
+    }
+  };
 
   //FETCH: MEDICAMENTOS
   const fetchMedicamentos = async () => {
@@ -91,12 +143,6 @@ export function Medicamentos() {
       setIsLoading(false);
     }
   }
-
-  //Solo se ejecuta una vez al montar (o si cambian los tokens)
-  useEffect(() => {
-    fetchMedicamentos();
-  }, [authToken, refreshToken]);
-
 
   //HANDLE: AGREGAR MEDICAMENTO
   const handleAgregarMedicamento = () => {
@@ -272,6 +318,14 @@ export function Medicamentos() {
           )}
         </View>
       )}
+      {/* TUTORIAL */}
+      <ModalTutorial
+        tipo={"tutorial"}
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        medicamentos={true}
+        rol={rol}
+      />
       {/* BOTÓN FLOTANTE */}
       {!isProfesional && <BotonAgregar onPress={handleAgregarMedicamento}/>}
       {/* TOAST */}

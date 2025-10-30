@@ -1,7 +1,8 @@
-import * as d3 from 'd3';
+import * as d3 from "d3";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, usePathname } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import { Dimensions, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useAuth } from "@/context/auth";
@@ -13,6 +14,7 @@ import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaString } from '@/components/base/FormatearFecha';
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 
 function formatearTiempo(minutos: number): string {
   const horas = Math.floor(minutos / 60);
@@ -51,10 +53,14 @@ interface OG {
 //PROGRESO
 export function Progreso() {
 
-  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
+  const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
   const { paciente, tiempo, progresion } = useLocalSearchParams();
   const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
   const [pacienteID] = pacienteString?.split("-") ?? [null, null];
+  const ruta = decodeURIComponent(usePathname());
+  if (!ruta) return null;
+  const ruta_partes = ruta.split("/").filter(Boolean);
+  const rol = ruta_partes[0];
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -93,7 +99,10 @@ export function Progreso() {
 
   const [timeText, setTimeText] = useState(timePeriods.toString());
 
+  const [showTutorial, setShowTutorial] = useState(false);
+
   useEffect(() => {
+    fetchTutoriales();
     fetchOG();
   }, [authToken, refreshToken]);
 
@@ -103,6 +112,46 @@ export function Progreso() {
       setInicializado(true);
     }
   }, [OG, inicializado]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[progreso] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[progreso] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[progreso] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_progreso) {
+        console.log("[progreso] Tutorial no visto...");
+        console.log("[progreso] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[progreso] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_progreso: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_progreso: true };
+        console.log("[progreso] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[progreso] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[progreso] Error:", err);
+      setError(true);
+    }
+  };
 
   //FETCH: OG
   const fetchOG = async () => {
@@ -774,6 +823,14 @@ export function Progreso() {
               </View>
             )}
           </CustomModal>
+          {/* TUTORIAL */}
+          <ModalTutorial
+            tipo={"tutorial"}
+            visible={showTutorial}
+            onClose={() => setShowTutorial(false)}
+            plan={true}
+            rol={rol}
+          />
 
         </>
       )}

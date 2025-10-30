@@ -4,6 +4,7 @@ import { Titulo } from "@/components/base/Titulo";
 import { colors } from "@/constants/colors";
 import { Icons } from "@/constants/icons";
 import { useAuth } from "@/context/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Constants from "expo-constants";
 import { usePathname } from "expo-router";
@@ -11,6 +12,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, FlatList, InteractionManager, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import "react-native-get-random-values"; //Tambien para generar ids aleatoreas
 import { v4 as uuidv4 } from "uuid"; //Para generar ids-aleatoreos sin colisión
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 
 const WS_BASE_URL = Constants.expoConfig?.extra?.wsBaseUrl;
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
@@ -20,6 +22,10 @@ export default function Chat() {
   const {user, authToken, refreshToken, setAuthToken, createApi} = useAuth();
   const pathname = usePathname(); 
   const plan_id = pathname.split("/")[2].split("-")[0];
+  const ruta = decodeURIComponent(usePathname());
+  if (!ruta) return null;
+  const ruta_partes = ruta.split("/").filter(Boolean);
+  const rol = ruta_partes[0];
 
   //ESTADOS
   const [texto, setTexto] = useState("");
@@ -38,7 +44,52 @@ export default function Chat() {
   const anchoringRef = useRef(false);
   const hasAnchoredRef = useRef(false);
   const [forceAnchor, setForceAnchor] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   
+  useEffect(() => {
+    fetchTutoriales();
+  },[authToken, refreshToken]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[chat] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[chat] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[chat] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_chat) {
+        console.log("[chat] Tutorial no visto...");
+        console.log("[chat] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[chat] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_chat: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_chat: true };
+        console.log("[chat] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[chat] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[chat] Error:", err);
+      setError(true);
+    }
+  };
+
   //--------- Función para conectar al WS --------------
   const connectWS = () => {
 
@@ -620,6 +671,14 @@ const formatearFecha = (fecha: Date) => {
           </View>
 
         </View>
+      {/* TUTORIAL */}
+      <ModalTutorial
+        tipo={"tutorial"}
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        chat={true}
+        rol={rol}
+      />
     </KeyboardAvoidingView>
   );
 }

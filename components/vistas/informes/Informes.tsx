@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import React, { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { EncodingType, readAsStringAsync, StorageAccessFramework, writeAsStringAsync } from "expo-file-system/legacy";
@@ -14,6 +15,7 @@ import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaDDMMYYYY } from "@/components/base/FormatearFecha";
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 import { EspacioUsadoBarra } from "@/components/vistas/informes/Componentes";
 import { BotonAgregar, BotonDescargar, BotonDetalles, BotonFiltro, BotonVer } from "@/components/base/Boton";
 
@@ -206,8 +208,10 @@ export function Informes() {
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
   const [showModalFiltro, setShowModalFiltro] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
+    fetchTutoriales();
     fetchInformes();
   }, [authToken, refreshToken]);
 
@@ -220,6 +224,46 @@ export function Informes() {
       setToast({ text1: "Informe guardado exitosamente.", type: "success" });
     }
   }, [success]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[informes] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[informes] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[informes] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_informes) {
+        console.log("[informes] Tutorial no visto...");
+        console.log("[informes] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[informes] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_informes: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_informes: true };
+        console.log("[informes] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[informes] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[informes] Error:", err);
+      setError(true);
+    }
+  };
 
   //FETCH: ESPACIO
   const fetchEspacioUsado = async () => {
@@ -311,7 +355,7 @@ export function Informes() {
           />
         </>
       )}
-      {/* MODAL: FITLRO */}
+      {/* MODAL: FILTRO */}
       <CustomModal
         tipo={"expandible"}
         visible={showModalFiltro}
@@ -323,6 +367,14 @@ export function Informes() {
           </Text>
         </View>
       </CustomModal>
+      {/* TUTORIAL */}
+      <ModalTutorial
+        tipo={"tutorial"}
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        informes={true}
+        rol={rol}
+      />
       {/* BOTÓN FLOTANTE */}
       <BotonAgregar onPress={handleAgregarInforme}/>
       {/* TOAST */}

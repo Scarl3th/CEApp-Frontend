@@ -1,7 +1,7 @@
-import { Titulo } from "@/components/base/Titulo";
-
+import { Tutoriales } from "@/components/vistas/Tutoriales";
+  
 export default function TutorialesCuidador() {
   return (
-    <Titulo> Tutoriales </Titulo>
+    <Tutoriales/>
   )
 }

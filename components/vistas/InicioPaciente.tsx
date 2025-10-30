@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { Icons } from "@/constants/icons";
@@ -9,6 +10,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { TarjetaInicio } from "@/components/base/Tarjeta";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearTiempo } from "@/components/base/FormatearFecha";
+import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 
 export function InicioPaciente() {
 
@@ -30,10 +32,52 @@ export function InicioPaciente() {
   const [porcentajePromedio, setPorcentajePromedio] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-      fetchMetricas();
-    }, [authToken, refreshToken]);
+    fetchTutoriales();
+    fetchMetricas();
+  }, [authToken, refreshToken]);
+
+  //FETCH: TUTORIAL
+  const fetchTutoriales = async () => {
+    const tutorialesAlmacenamiento = `tutoriales_${user?.id}`;
+    if (!authToken || !refreshToken) return;
+    try {
+      //FETCH: TUTORIAL
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[inicio] Obteniendo tutoriales en almacenamiento local...");
+      const tutorialesAlmacenamientoLocal = await AsyncStorage.getItem(tutorialesAlmacenamiento);
+      let tutorialesAlmacenamientoDatos: Tutoriales;
+      if (tutorialesAlmacenamientoLocal) {
+        tutorialesAlmacenamientoDatos = JSON.parse(tutorialesAlmacenamientoLocal) as Tutoriales;
+      } else {
+        console.log("[inicio] No se encontraron tutoriales en el almacenamiento local...");
+        console.log("[inicio] Obteniendo tutoriales de la base de datos...");
+        const res = await api.get("/tutoriales/");
+        tutorialesAlmacenamientoDatos = res.data;
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      //HANDLE: TUTORIAL
+      if (!tutorialesAlmacenamientoDatos.tutorial_inicio) {
+        console.log("[inicio] Tutorial no visto...");
+        console.log("[inicio] Activando tutorial...");
+        setShowTutorial(true);
+        console.log("[inicio] Actualizando tutorial en la base de datos...");
+        await api.patch("/tutoriales/", { tutorial_inicio: true });
+        tutorialesAlmacenamientoDatos = { ...tutorialesAlmacenamientoDatos, tutorial_inicio: true };
+        console.log("[inicio] Actualizando tutorial en almacenamiento local...");
+        await AsyncStorage.setItem(tutorialesAlmacenamiento, JSON.stringify(tutorialesAlmacenamientoDatos));
+      }
+      else {
+        console.log("[inicio] Tutorial visto...");
+      }
+      setError(false);
+    } catch (err) {
+      console.log("[inicio] Error:", err);
+      setError(true);
+    }
+  };
 
   //FETCH: MÉTRICAS
   const fetchMetricas = async () => {
@@ -193,6 +237,14 @@ export function InicioPaciente() {
           </View>
         </ScrollView>
       )}
+      {/* TUTORIAL */}
+      <ModalTutorial
+        tipo={"tutorial"}
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        inicio={true}
+        rol={rol}
+      />
     </View>
   );
 
