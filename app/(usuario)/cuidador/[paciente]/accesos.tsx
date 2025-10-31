@@ -1,7 +1,7 @@
-import { Titulo } from "@/components/base/Titulo";
-
-export default function Accesos() {
+import { Accesos } from "@/components/vistas/Accesos";
+  
+export default function AccesosVista() {
   return (
-    <Titulo> Accesos </Titulo>
+    <Accesos />
   )
 }

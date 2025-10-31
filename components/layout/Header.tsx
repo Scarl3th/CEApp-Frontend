@@ -12,6 +12,7 @@ import { BotonTutorial } from "@/components/vistas/Tutoriales";
 import { BotonEsquinaSuperior } from "@/components/base/Boton";
 import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { useDescartarCambios } from "@/context/DescartarCambios";
+import { useAuth } from "@/context/auth";
 
 //HEADER
 export function Header() {
@@ -83,6 +84,30 @@ export function Header() {
   } else {
     icono = 1;
   }
+
+  //Handle para cerrar sesión
+  const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
+  const handleCloseSession = async (ruta_atras: any) =>{
+    
+    //Si es profesional debemos crear un log 
+    if (user?.role === "profesional"){
+    
+      try{
+        const api = createApi(authToken, refreshToken, setAuthToken);
+        const res = await api.post("/logs/end-session/");
+        console.log("[log cerrar sesión] Log de sesión cerrada creado existoasamente");
+      }
+      catch(err: unknown){
+        console.error("[log cerrar sesión] Error creando el log para cerrar sesión:", err);
+      }
+    }
+    
+    //Ponemos las funcionalidades que estaban en el botón por defecto
+    console.log("[menú] Cerrando sesión...");
+    router.replace(ruta_atras!)
+
+  }
+
   const handlePress = () => {
     if (usarDescartarCambios && handleDescartarCambios) {
       handleDescartarCambios(ruta_atras!);
@@ -95,7 +120,7 @@ export function Header() {
           {
             text: "Cerrar sesión",
             style: "destructive",
-            onPress: () => router.replace(ruta_atras!),
+            onPress: () => handleCloseSession(ruta_atras),
           },
         ]
       );

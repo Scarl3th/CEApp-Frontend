@@ -39,7 +39,8 @@ interface PacienteItemProps {
   paciente: Paciente;
   isProfesional: boolean;
 }
-export const PacienteItem = ({
+
+const PacienteItem = ({
   paciente,
   isProfesional,
 }: PacienteItemProps) => {
@@ -200,6 +201,19 @@ export function SelectorPaciente() {
     }
   }
 
+  /*//Handle para mandar el log al entrar al plan de trabajo
+  const handleSelectPaciente = async (paciente_id: any) => {
+    if (user?.role === "profesional") {
+      try {
+        const api = createApi(authToken, refreshToken, setAuthToken);
+        await api.post(`/logs/${paciente_id}/`);
+        console.log("[log seleccionar paciente] Log de acceso a plan de trabajo creado");
+      } catch (err) {
+        console.error("[log seleccionar paciente] Error creando Log de acceso al plan de trabajo");
+      }
+    }
+  };*/
+
   //HANDLE: AGREGAR-PACIENTE
   const handleAgregarPaciente = () => {
     console.log("[selector-paciente] Agregando paciente...");
@@ -262,6 +276,7 @@ export function SelectorPaciente() {
             <PacientesLista
               pacientes={pacientesFiltrados}
               isProfesional={isProfesional}
+              //onSelectPaciente={handleSelectPaciente}
             />
           </>
         )}

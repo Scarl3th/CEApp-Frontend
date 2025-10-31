@@ -15,7 +15,7 @@ function primeraLetraMayuscula(text: string) {
 
 export function Menu({ visible, onClose, paciente }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, createApi, authToken, refreshToken, setAuthToken } = useAuth();
   if (!user) return null;
   const isProfesional = user?.role === "profesional";
 
@@ -37,6 +37,29 @@ export function Menu({ visible, onClose, paciente }) {
       }, 0);
     }
   }, [visible, rutaPendiente, router]);
+
+
+  //Handle para cerrar sesión
+  const handleCloseSession = async () =>{
+    
+    //Si es profesional debemos crear un log 
+    if (user.role === "profesional"){
+    
+      try{
+        const api = createApi(authToken, refreshToken, setAuthToken);
+        const res = await api.post("/logs/end-session/");
+        console.log("[log cerrar sesión] Log de sesión cerrada creado existoasamente");
+      }
+      catch(err: unknown){
+        console.error("[log cerrar sesión] Error creando el log para cerrar sesión:", err);
+      }
+    }
+    
+    //Ponemos las funcionalidades que estaban en el botón por defecto
+    console.log("[menú] Cerrando sesión...");
+    setRutaPendiente(`/login`);
+    onClose();
+  }
 
   const items = [
     { route: `plan/progreso`, iconName: Icons["progreso"].iconName, label: Icons["progreso"].label, roles: ["profesional","cuidador"] },
@@ -130,11 +153,7 @@ export function Menu({ visible, onClose, paciente }) {
                   {
                     text: "Cerrar sesión",
                     style: "destructive",
-                    onPress: () => {
-                      console.log("[menú] Cerrando sesión...");
-                      setRutaPendiente(`/login`);
-                      onClose();
-                    },
+                    onPress: () => handleCloseSession(),
                   },
                 ]
               );

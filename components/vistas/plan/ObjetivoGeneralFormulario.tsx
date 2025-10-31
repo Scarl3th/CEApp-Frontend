@@ -26,7 +26,7 @@ const categorias = [
 
 export function ObjetivoGeneralFormulario() {
 
-  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
+  const { authToken, refreshToken, createApi, setAuthToken, user } = useAuth();
   const router = useRouter();
   const navigation = useNavigation();
   //id: ID del objetivo
@@ -172,6 +172,23 @@ export function ObjetivoGeneralFormulario() {
             color: color
           }, {timeout: 5000})
           console.log("[plan: objetivo-general-agregar] Respuesta:", res.data);
+
+          //Creamos un log de que se creó un objetivo general
+          if (user?.role === "profesional") {
+            try {
+              const payload = 
+              {
+                "elemento": "objetivo general",
+                "nombre_elemento": titulo,
+                "accion": "editar",
+              }
+
+              await api.post(`/logs/${pacienteID}/`, payload);
+              console.log("[LOGs] Log de edición objetivo general creado");
+            } catch (err) {
+              console.error("[LOGs] Error creando log de edición objetivo general");
+            }
+          }
           router.push(`/profesional/${paciente}/plan?recargar=1&success=1`);
         }
       } else {
@@ -190,6 +207,27 @@ export function ObjetivoGeneralFormulario() {
             color: color
           }, {timeout: 5000})
           console.log("[plan: objetivo-general-agregar] Respuesta:", res.data);
+
+
+
+          //Creamos un log de que se creó un objetivo general
+          if (user?.role === "profesional") {
+            try {
+              const payload = 
+              {
+                "elemento": "objetivo general",
+                "nombre_elemento": titulo,
+                "accion": "crear",
+              }
+
+              await api.post(`/logs/${pacienteID}/`, payload);
+              console.log("[LOGs] Log de creación objetivo general creado");
+            } catch (err) {
+              console.error("[LOGs] Error creando log de creación objetivo general");
+            }
+          }
+
+          
           router.push(`/profesional/${paciente}/plan?recargar=1&success=1`);
         }
       }

@@ -68,6 +68,8 @@ const ObjetivoGeneralItem = ({
   const isProfesional = user?.role === "profesional";
   const router = useRouter();
   const { paciente } = useLocalSearchParams();
+  const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
+  const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
 
   //ESTADOS
   const [showObjetivosEspecificos, setShowObjetivosEspecificos] = useState(false);
@@ -94,11 +96,33 @@ const ObjetivoGeneralItem = ({
           {
             if (!authToken || !refreshToken) return;
             const api = createApi(authToken, refreshToken, setAuthToken);
+
             api
               .delete("/objetivos/detalle/" + objetivoGeneral.id + "/", {timeout:5000})
-              .then((res: any) => {console.log("[plan] Respuesta:", res.status);
-                                   setToast({ text1: "Objetivo general eliminado exitosamente.", type: "success" });
-                                   onChange()})
+              .then((res: any) => {
+                console.log("[plan] Respuesta:", res.status);
+                setToast({ text1: "Objetivo general eliminado exitosamente.", type: "success" });
+                onChange()
+
+                //También creamos un log de eliminar un objetivo general si es un profesional
+                if (user?.role === "profesional"){
+                  const payload = {
+                    elemento: "objetivo general",
+                    accion: "eliminar",
+                    nombre_elemento: objetivoGeneral.titulo
+                  };
+
+                  api
+                    .post(`/logs/${pacienteID}/`, payload)
+                    .then(() => {
+                      console.log("[LOGs] Log de eliminar objetivo general creado");
+                    })
+                    .catch(() => {
+                      console.error("[LOGs] Error creando log de eliminar objetivo general");
+                    });                 
+                }
+
+              })
               .catch((err: any) => {console.log("[plan] Error:", err.message);
                                     setToast({ text1: "Hubo un problema al eliminar el objetivo general.", text2: "Intenta nuevamente.", type: "error" });
                                     onChange();
@@ -297,7 +321,25 @@ export function Plan() {
   const fetchObjetivosGenerales = async (recargarForzar = false) => {
     if (!authToken || !refreshToken) return;
     setIsLoading(true);
+
+    const api = createApi(authToken, refreshToken, setAuthToken);
     try {
+
+      //Creamos un log de que se accedió a la información de los medicamentos
+      if (user?.role === "profesional") {
+        try {
+          const payload = 
+          {
+            "elemento": "plan de trabajo",
+            "accion": "acceder",
+          }
+          await api.post(`/logs/${pacienteID}/`, payload);
+          console.log("[LOGs] Log de acceso al plan de trabajo creado");
+        } catch (err) {
+          console.error("[LOGs] Error creando log de acceso al plan de trabajo");
+        }
+      }
+
       const ahora = Date.now();
       const cachefechaObjetivosGeneralesAlmacenamiento = await AsyncStorage.getItem(fechaObjetivosGeneralesAlmacenamiento);
       const cachedatosObjetivosGeneralesAlmacenamiento = await AsyncStorage.getItem(datosObjetivosGeneralesAlmacenamiento);
@@ -318,7 +360,6 @@ export function Plan() {
         }
       }
       //SIN CACHÉ VÁLIDO
-      const api = createApi(authToken, refreshToken, setAuthToken);
       console.log("[plan] Obteniendo objetivos generales de la base de datos...");
       const res = await api.get("/objetivos/" + pacienteID + "/");
       const objetivosGeneralesFechas: ObjetivoGeneral[] = res.data.map((og: any) => ({

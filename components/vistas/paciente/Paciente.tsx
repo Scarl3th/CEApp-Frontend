@@ -121,8 +121,24 @@ export function Paciente() {
       console.log("[paciente] Obteniendo paciente de la base de datos...");
       //console.log(`/cuidador-plan-trabajo/${pacienteID}/`)
       const res = await api.get(`/cuidador-plan-trabajo/${pacienteID}/`);
+
+      //Agregamos un log de que se accedió a datos del paciente
+      if (user?.role === "profesional") {
+        try {
+          const payload = 
+          {
+            "elemento": "datos del paciente",
+            "accion": "acceder",
+            "nombre_elemento": res.nombre
+          }
+          await api.post(`/logs/${pacienteID}/`, payload);
+          console.log("[LOGs] Log de acceso a datos del paciente");
+        } catch (err) {
+          console.error("[LOGs] Error creando log de acceso a datos del paciente");
+        }
+      }
+
       setPacienteObj(res.data);
-      console.log(res.data);
       setError(false);
     } catch(err) {
       console.log("[paciente] Error:", err);

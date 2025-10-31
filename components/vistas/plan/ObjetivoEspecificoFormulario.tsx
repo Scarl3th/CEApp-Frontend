@@ -26,7 +26,7 @@ export function ObjetivoEspecificoFormularioModal({
   objetivoGeneralID,
 }: ObjetivoEspecificoFormularioModalProps) {
 
-  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
+  const { authToken, refreshToken, createApi, setAuthToken, user} = useAuth();
   const router = useRouter();
   const navigation = useNavigation();
   const { paciente } = useLocalSearchParams();
@@ -178,6 +178,24 @@ export function ObjetivoEspecificoFormularioModal({
             descripcion: descripcion
           }, {timeout: 5000})
           console.log("[plan: objetivo-especifico-agregar] Respuesta:", res.data);
+
+          //Agregamos un log de que editamos objetivo específico
+          if (user?.role === "profesional") {
+            try {
+              const payload = 
+              {
+                "elemento": "objetivo especifico",
+                "nombre_elemento": titulo,
+                "accion": "editar",
+              }
+              await api.post(`/logs/${pacienteID}/`, payload);
+              console.log("[LOGs] Log de edición objetivo específico creado");
+            } catch (err) {
+              console.error("[LOGs] Error creando log de edición objetivo específico");
+            }
+          }
+
+
           onSuccess();
         }
       } else {
@@ -194,6 +212,24 @@ export function ObjetivoEspecificoFormularioModal({
             descripcion: descripcion
           }, {timeout: 5000})
           console.log("[plan: objetivo-especifico-agregar] Respuesta:", res.data);
+
+
+          //Agregamos un log de que creamos objetivo específico
+          if (user?.role === "profesional") {
+            try {
+              const payload = 
+              {
+                "elemento": "objetivo especifico",
+                "nombre_elemento": titulo,
+                "accion": "crear",
+              }
+              await api.post(`/logs/${pacienteID}/`, payload);
+              console.log("[LOGs] Log de crear objetivo específico creado");
+            } catch (err) {
+              console.error("[LOGs] Error creando log de crear objetivo específico");
+            }
+          }
+
           onSuccess();
         }
       }

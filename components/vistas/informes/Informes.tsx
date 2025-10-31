@@ -112,6 +112,24 @@ const InformeItem = ({
       // Descargar el archivo en caché
       const output = await FileSystem.File.downloadFileAsync(url, destination, {idempotent: true});
       console.log(`[informes] Archivo descargado en ${output.uri}`);
+
+      //Guardar log si es profesional
+      if (user?.role === "profesional") {
+        try {
+          const payload = 
+          {
+            "elemento": "informe",
+            "accion": "descargar",
+            "nombre_elemento": informe.titulo,
+          }
+          await api.post(`/logs/${pacienteID}/`, payload);
+          console.log("[LOGs] Log de descargar informe creado");
+        } catch (err) {
+          console.error("[LOGs] Error creando log de descargar informe");
+        }
+      }
+    
+
       // Selección de carpeta y petición de permisos
       const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
       if (!permissions.granted) {

@@ -136,6 +136,22 @@ export function Medicamentos() {
       const res = await api.get(`/medicamentos/${pacienteID}`);
       setMedicamentos(res.data);
       setError(false);
+  
+      //Creamos un log de que se accedió a la información de los medicamentos
+      if (user?.role === "profesional") {
+        try {
+          const payload = 
+          {
+            "elemento": "medicamento",
+            "accion": "acceder",
+          }
+          await api.post(`/logs/${pacienteID}/`, payload);
+          console.log("[LOGs] Log de acceso a medicamentos creado");
+        } catch (err) {
+          console.error("[LOGs] Error creando log de acceso medicamentos");
+        }
+      }
+
     } catch(err) {
       console.log("[medicamentos] Error:", err);
       setError(true);

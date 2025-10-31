@@ -1,5 +1,5 @@
 import { FlatList, Text, View } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState  } from "react";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/auth";
@@ -8,7 +8,7 @@ import { colors } from "@/constants/colors";
 import { CustomModal } from "@/components/base/Modal";
 import { Etiqueta } from "@/components/base/Etiqueta";
 import { CustomToast } from "@/components/base/Toast";
-import { BotonAgregar } from "@/components/base/Boton";
+import { BotonAgregar, BotonEliminar } from "@/components/base/Boton";
 import { TextoBloque } from "@/components/base/TextoBloque";
 import { TarjetaExpandible } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
@@ -16,6 +16,7 @@ import { Titulo, TituloSeccion } from "@/components/base/Titulo";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { ModalTutorial, Tutoriales } from "@/components/vistas/Tutoriales";
 import { formatearFechaString, formatearTiempo } from "@/components/base/FormatearFecha";
+import { FormularioCampo, FormularioCampoSelect, FormularioCampoMultiSelect } from "@/components/base/Entrada";
 
 //ENTRADA
 const animos = [
@@ -185,7 +186,16 @@ export function Bitacora() {
   const [entradas, setEntradas] = useState<Entrada[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [objetivosEspecificos, setObjetivosEspecificos] = useState([]);
+  const [objetivosGenerales, setObjetivosGenerales] = useState<ObjetivoGeneral[]>([]);
+  const [equipo, setEquipo] = useState<Profesional[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const [orden, setOrden] = useState("1");
+  const [sprofesionales, setSProfesionales] = useState([]);
+  const [sanimos, setSAnimos] = useState([]);
+  const [maxDuracion, setMaxDuracion] = useState("");
+  const [sObjetivosEspecificos, setSObjetivosEspecificos] = useState([]);
+  const [sObjetivosGenerales, setSObjetivosGenerales] = useState([]);
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
   const [showModalFiltro, setShowModalFiltro] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -194,6 +204,9 @@ export function Bitacora() {
   useEffect(() => {
     fetchTutoriales();
     fetchEntradas();
+    fetchObjetivosGenerales();
+    fetchEquipo();
+    fetchObjetivosEspecificos();
   }, [authToken, refreshToken]);
 
   useEffect(() => {
@@ -201,6 +214,12 @@ export function Bitacora() {
       setToast({ text1: "Entrada guardada exitosamente.", type: "success" });
     }
   }, [success]);
+
+  useEffect(() => {
+    if(maxDuracion === "none"){
+      setMaxDuracion("");
+    }
+  }),[maxDuracion];
 
   //FETCH: TUTORIAL
   const fetchTutoriales = async () => {
@@ -246,6 +265,24 @@ export function Bitacora() {
   const fetchEntradas = async (forzarRecargar = false) => {
     if (!authToken || !refreshToken) return;
     setIsLoading(true);
+
+    const api = createApi(authToken, refreshToken, setAuthToken);
+
+    //Creamos un log de que se accedió a la información de las bitácoras si el usuario es un profecional
+    if (user?.role === "profesional") {
+      try {
+        const payload = 
+        {
+          "elemento": "bitacora",
+          "accion": "acceder",
+        }
+
+        await api.post(`/logs/${pacienteID}/`, payload);
+        console.log("[LOGs] Log de acceso a la bitácora creado");
+      } catch (err) {
+        console.error("[LOGs] Error creando log de acceso a la bitácora");
+      }
+    }
     try {
       const ahora = Date.now();
       const cacheFechaAlmacenamiento = await AsyncStorage.getItem(fechaAlmacenamiento);
@@ -276,6 +313,7 @@ export function Bitacora() {
       setEntradas(entradasFechas);
       setIsLoading(false);
       setError(false);
+      console.log(entradasFechas);
       await AsyncStorage.setItem(datosAlmacenamiento, JSON.stringify(entradasFechas));
       await AsyncStorage.setItem(fechaAlmacenamiento, ahora.toString());
       if (recargarNuevaEntrada.current) {
@@ -288,6 +326,135 @@ export function Bitacora() {
     }
   };
 
+  //OBJETIVO GENERAL
+  interface ObjetivoGeneral {
+    id: string;
+    titulo: string;
+    descripcion: string;
+    categoria: string;
+    color: string;
+    autor_creacion: string;
+    fecha_creacion: Date;
+    autor_modificacion?: string;
+    fecha_modificacion?: Date;
+    clasificacion: 0 | 1 | 2;
+  }
+  const clasificacionMap: Record<number, string> = {
+    0: "En construcción",
+    1: "En progreso",
+    2: "Completado",
+  };
+
+  //ALMACENAMIENTO LOCAL
+  const datosObjetivosGeneralesAlmacenamiento = `plan_objetivos_general_${pacienteID}`;
+  const fechaObjetivosGeneralesAlmacenamiento = `plan_objetivos_general_${pacienteID}_fecha`;
+  const recargarObjetivosGenerales = useRef(recargar === "1");
+
+  //FETCH: OBJETIVOS GENERALES
+  const fetchObjetivosGenerales = async (recargarForzar = false) => {
+    if (!authToken || !refreshToken) return;
+    setIsLoading(true);
+    try {
+      const ahora = Date.now();
+      const cachefechaObjetivosGeneralesAlmacenamiento = await AsyncStorage.getItem(fechaObjetivosGeneralesAlmacenamiento);
+      const cachedatosObjetivosGeneralesAlmacenamiento = await AsyncStorage.getItem(datosObjetivosGeneralesAlmacenamiento);
+      const tiempo = 5 * 60 * 1000;
+      if (cachefechaObjetivosGeneralesAlmacenamiento && cachedatosObjetivosGeneralesAlmacenamiento && !recargarObjetivosGenerales.current && !recargarForzar) {
+        const cacheFecha = parseInt(cachefechaObjetivosGeneralesAlmacenamiento, 10);
+        if (ahora - cacheFecha < tiempo ) {
+          console.log("[bitácora] Obteniendo objetivos generales del almacenamiento local...");
+          const objetivosGeneralesFechas: ObjetivoGeneral[] = JSON.parse(cachedatosObjetivosGeneralesAlmacenamiento).map((og: any) => ({
+            ...og,
+            fecha_creacion: new Date(og.fecha_creacion),
+            fecha_modificacion: og.fecha_modificacion ? new Date(og.fecha_modificacion) : null,
+          }));
+          setObjetivosGenerales(objetivosGeneralesFechas);
+          setIsLoading(false);
+          setError(false);
+          return;
+        }
+      }
+      //SIN CACHÉ VÁLIDO
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      console.log("[bitácora] Obteniendo objetivos generales de la base de datos...");
+      const res = await api.get("/objetivos/" + pacienteID + "/");
+      const objetivosGeneralesFechas: ObjetivoGeneral[] = res.data.map((og: any) => ({
+        ...og,
+        fecha_creacion: new Date(og.fecha_creacion),
+        fecha_modificacion: og.fecha_modificacion ? new Date(og.fecha_modificacion) : null,
+      }));
+      setObjetivosGenerales(objetivosGeneralesFechas);
+      setIsLoading(false);
+      setError(false);
+      await AsyncStorage.setItem(datosObjetivosGeneralesAlmacenamiento, JSON.stringify(res.data));
+      await AsyncStorage.setItem(fechaObjetivosGeneralesAlmacenamiento, ahora.toString());
+      if (recargarObjetivosGenerales.current) {
+        recargarObjetivosGenerales.current = false;
+      }
+    } catch (err) {
+      console.log("[plan] Error:", err);
+      setIsLoading(false);
+      setError(true);
+    };
+  };
+
+  //PROFESIONAL
+  interface Profesional {
+    id: string;
+    nombre: string;
+    cargo: string;
+    institucion: string;
+    correo: string;
+  }
+
+  //FETCH: EQUIPO
+  const fetchEquipo = async () => {
+    if (!authToken || !refreshToken) return;
+    setIsLoading(true);
+    console.log("[bitácora] Obteniendo equipo de la base de datos...");
+    try {
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      const res = await api.get(`plan-trabajo/${pacienteID}/profesionales`);
+      console.log("[bitácora] Respuesta:", res.data);
+      setEquipo(res.data);
+      //console.log(res.data);
+      setIsLoading(false);
+      setError(false);
+    } catch (err) {
+      console.log("[bitácora] Error:", err);
+      setIsLoading(false);
+      setError(true);
+    }
+  }
+
+  const equipoFormateado = equipo.map(u => ({
+    id: u.id.toString(),       // siempre mejor string si vas a usarlo como selectId
+    titulo: u.nombre.trim(),   // quitamos espacios extra
+    color: colors.primary,     // color igual para todos
+  }));
+
+  //FETCH: OBJETIVOS ESPECÍFICOS
+  const fetchObjetivosEspecificos = async () => {
+    if (!authToken || !refreshToken) return;
+    setIsLoading(true);
+    console.log("[bitácora] Obteniendo objetivos específicos de la base de datos...");
+    try {
+      const api = createApi(authToken, refreshToken, setAuthToken);
+      const res = await api.get(`bitacora/${pacienteID}/especificos/`);
+      console.log("[bitácora] Respuesta:", res.data);
+      setObjetivosEspecificos(res.data);
+      console.log(res.data);
+      setIsLoading(false);
+      setError(false);
+    } catch (err) {
+      console.log("[bitácora] Error:", err);
+      setIsLoading(false);
+      setError(true);
+    }
+  }
+
+
+
   //HANDLE: AGREGAR
   const handleAgregar = () => {
     console.log("[bitácora] Agregando entrada...")
@@ -295,26 +462,95 @@ export function Bitacora() {
   }
 
   //FILTRO
-  const entradasBusqueda = entradas.filter((entrada) => {
-    const textoBusqueda = busqueda.toLowerCase();
-    const titulo = entrada.titulo?.toLowerCase() ?? "";
-    const autor = entrada.autor?.toLowerCase() ?? "";
-    const comentarios = entrada.comentarios?.toLowerCase() ?? "";
-    const animo = animos.find(a => a.id === entrada.animo)?.nombre.toLowerCase() ?? "";
-    const objetivosEspecificos = entrada.selected_obj
-      ?.map(objetivo => objetivo.titulo?.toLowerCase() ?? "")
-      .join(" ") ?? "";
-    const actividades = entrada.actividades
-      ?.map(actividad => actividad.titulo?.toLowerCase() ?? "")
-      .join(" ") ?? "";
+  const entradasFiltradas = entradas.filter((entrada) => {
+
+    //Búsqueda
+    let bus;
+    if(busqueda.length){
+      const textoBusqueda = busqueda.toLowerCase();
+      const titulo = entrada.titulo?.toLowerCase() ?? "";
+      const autor = entrada.autor?.toLowerCase() ?? "";
+      const comentarios = entrada.comentarios?.toLowerCase() ?? "";
+      const animo = animos.find(a => a.id === entrada.animo)?.nombre.toLowerCase() ?? "";
+      const objetivosEspecificos = entrada.selected_obj
+        ?.map(objetivo => objetivo.titulo?.toLowerCase() ?? "")
+        .join(" ") ?? "";
+      const actividades = entrada.actividades
+        ?.map(actividad => actividad.titulo?.toLowerCase() ?? "")
+        .join(" ") ?? "";
+      bus = titulo.includes(textoBusqueda) ||
+                  autor.includes(textoBusqueda) ||
+                  comentarios.includes(textoBusqueda) ||
+                  animo.includes(textoBusqueda) ||
+                  objetivosEspecificos.includes(textoBusqueda) ||
+                  actividades.includes(textoBusqueda)
+    } else { bus = true; }
+
+    //Profesional
+    let pro;
+    if(sprofesionales.length){
+      pro = sprofesionales.includes(String(entrada.id_autor));
+    } else { pro = true; }
+
+    //Ánimo
+    let ani;
+    if(sanimos.length){
+      ani = sanimos.includes(entrada.animo);
+    } else { ani = true; }
+
+    //Duración
+    let dur;
+    if(maxDuracion){
+      if(maxDuracion === "1hr"){
+        dur = (entrada.duracion <= 60);
+      }
+      else if(maxDuracion === "2hrs"){
+        dur = (entrada.duracion <= 120);
+      }
+      else{
+        dur = (entrada.duracion > 120);
+      }
+    } else { dur = true; }
+
+    //Objetivos Específicos
+    let oes;
+    if(sObjetivosEspecificos.length){
+      oes = entrada.selected_obj.some((obj: any) =>
+        sObjetivosEspecificos.includes(obj.id)
+      );
+    } else { oes = true; }
+
+    //Objetivos Generales
+    let ogs;
+    if(sObjetivosGenerales.length){
+      ogs = entrada.objetivos_generales.some((obj: any) =>
+        sObjetivosGenerales.includes(obj.id)
+      );
+    } else { ogs = true; }
+
     return (
-      titulo.includes(textoBusqueda) ||
-      autor.includes(textoBusqueda) ||
-      comentarios.includes(textoBusqueda) ||
-      animo.includes(textoBusqueda) ||
-      objetivosEspecificos.includes(textoBusqueda) ||
-      actividades.includes(textoBusqueda)
+      bus && pro && ani && dur && oes && ogs
     );
+   
+  });
+
+  const entradasOrdenadas = [...entradasFiltradas].sort((a, b) => {
+    switch (orden) {
+      case "1":
+        // Fecha ascendente
+        return new Date(a.fecha_creacion).getTime() - new Date(b.fecha_creacion).getTime();
+      case "2":
+        // Fecha descendente
+        return new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime();
+      case "3":
+        // Título ascendente
+        return a.titulo.localeCompare(b.titulo);
+      case "4":
+        // Título descendente
+        return b.titulo.localeCompare(a.titulo);
+      default:
+        return 0;
+    }
   });
 
   //VISTA
@@ -336,11 +572,11 @@ export function Bitacora() {
             mensaje={`Hubo un error al cargar las entradas.\nIntenta nuevamente.`}
             onPressRecargar={() => fetchEntradas(true)}
           />
-        ) : entradasBusqueda.length === 0 ? (
+        ) : entradasOrdenadas.length === 0 ? (
           <MensajeVacio
             mensaje={`No se encontraron entradas.\n¡Comienza a registrar el progreso del paciente usando el botón ＋!`}/>
         ) : (
-          <EntradasLista entradas={entradasBusqueda}/>
+          <EntradasLista entradas={entradasOrdenadas}/>
         )}
       </View>
       {/* MODAL: FITLRO */}
@@ -350,9 +586,98 @@ export function Bitacora() {
         onClose={() => setShowModalFiltro(false)}
       >
         <View className="flex-1 p-2 gap-4 justify-center">
+
           <Text className="text-primary text-xl font-bold">
-            Filtro
+            Ordenamiento
           </Text>
+          <FormularioCampoSelect
+            label="Ordenar por"
+            placeholder="Seleccione una opción"
+            items={[
+              {id: "1", titulo: "Fecha de creación (Mayor a menor)", color: colors.primary},
+              {id: "2", titulo: "Fecha de creación (Menor a mayor)", color: colors.primary},
+              {id: "3", titulo: "Alfabéticamente (A a la Z)", color: colors.primary},
+              {id: "4", titulo: "Alfabéticamente (Z a la A)", color: colors.primary}
+            ]}
+            selectedId={orden}
+            onChange={setOrden}
+          />
+          
+          <View className="flex-row items-center justify-between">
+            <Text className="text-primary text-xl font-bold flex-1">
+              Filtros
+            </Text>
+            <BotonEliminar texto="Quitar filtros" tipo={"horizontal"} onPress={()=>{
+              setMaxDuracion("");
+              setBusqueda("");
+              setSAnimos([]);
+              setSObjetivosEspecificos([]);
+              setSObjetivosGenerales([]);
+              setSProfesionales([]);
+            }}/>
+          </View>
+          
+          <FormularioCampo
+            label="Por texto"
+            placeholder="Ingresa texto para buscar"
+            value={busqueda}
+            onChangeText={setBusqueda}
+          />
+          <FormularioCampoMultiSelect
+            label="Por profesional"
+            items={equipoFormateado}
+            selected={sprofesionales}
+            onChange={setSProfesionales}
+            placeholder="Selecciona profesionales"
+            placeholderSelected="Profesionales"
+          />
+          <FormularioCampoMultiSelect
+            label="Por estado de ánimo"
+            items={[
+              { id: "Feliz", titulo: "😊 Feliz" },
+              { id: "Triste", titulo: "😢 Triste" },
+              { id: "Molesto", titulo: "😡 Molesto" },
+              { id: "Entusiasmado", titulo: "🤩 Entusiasmado" },
+              { id: "Sorprendido", titulo: "😮 Sorprendido" },
+              { id: "Confundido", titulo: "😕 Confundido" },
+              { id: "Cansado", titulo: "🥱 Cansado" },
+              { id: "Neutral", titulo: "😐 Neutral" },
+            ]}
+            selected={sanimos}
+            onChange={setSAnimos}
+            placeholder="Selecciona estados de ánimo"
+            placeholderSelected="Estados de ánimo"
+          />
+          <FormularioCampoSelect
+            label="Por duración máxima"
+            placeholder="Seleccione una opción"
+            items={[
+              {id: "1hr", titulo: "Hasta 1 hora", color: colors.primary},
+              {id: "2hrs", titulo: "Hasta 2 horas", color: colors.primary},
+              {id: "+2hrs", titulo: "Más de 2 horas", color: colors.primary},
+              {id: "none", titulo: "Sin límite", color: colors.white}
+            ]}
+            selectedId={maxDuracion}
+            onChange={setMaxDuracion}
+          />
+          <FormularioCampoMultiSelect
+            label="Por objetivo general"
+            items={objetivosGenerales}
+            selected={sObjetivosGenerales}
+            onChange={setSObjetivosGenerales}
+            placeholder="Selecciona objetivos generales"
+            placeholderSelected="Objetivos generales"
+          />
+          <FormularioCampoMultiSelect
+            label="Por objetivo específico"
+            items={objetivosEspecificos}
+            selected={sObjetivosEspecificos}
+            onChange={setSObjetivosEspecificos}
+            placeholder="Selecciona objetivos específicos"
+            placeholderSelected="Objetivos específicos"
+          />
+          
+          
         </View>
       </CustomModal>
       {/* TUTORIAL */}

@@ -10,7 +10,7 @@ import { FormularioCampo, FormularioCampoInforme } from "@/components/base/Entra
 
 export function InformeFormulario() {
 
-  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
+  const { authToken, refreshToken, createApi, setAuthToken, user} = useAuth();
   const router = useRouter();
   const ruta = decodeURIComponent(usePathname());
   if (!ruta) return null;
@@ -139,6 +139,25 @@ export function InformeFormulario() {
           headers: { "Content-Type": "multipart/form-data" },
           timeout: 5000
         });
+
+        
+        //Creamos un log de que se subió un informe
+        if (user?.role === "profesional") {
+          try {
+            const payload = 
+            {
+              "elemento": "informe",
+              "accion": "subir",
+              "nombre_elemento": titulo,
+            }
+            await api.post(`/logs/${pacienteID}/`, payload);
+            console.log("[LOGs] Log de acceso a la bitácora creado");
+          } catch (err) {
+            console.error("[LOGs] Error creando log de acceso a la bitácora");
+          }
+        }
+
+
         router.push(`/${rol}/${paciente}/informes?success=1`);
       }
     } catch(err) {

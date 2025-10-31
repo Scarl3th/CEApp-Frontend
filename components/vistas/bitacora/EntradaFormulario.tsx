@@ -26,7 +26,7 @@ interface Actividad {
 //ENTRADA-AGREGAR
 export function EntradaFormulario() {
 
-  const { authToken, refreshToken, createApi, setAuthToken } = useAuth();
+  const { authToken, refreshToken, createApi, setAuthToken , user} = useAuth();
   const router = useRouter();
   const navigation = useNavigation();
   const { paciente } = useLocalSearchParams();
@@ -209,6 +209,25 @@ export function EntradaFormulario() {
       }, {timeout: 5000})
       console.log("[bitácora: entrada-agregar] Respuesta:", res.data);
       router.push(`/profesional/${paciente}/bitacora?recargar=1&success=1`);
+
+      //Creamos un log de que se accedió a la información de las bitácoras si el usuario es un profecional
+      if (user?.role === "profesional") {
+        try {
+          const payload = 
+          {
+            "elemento": "bitacora",
+            "accion": "crear",
+            "nombre_elemento": titulo,
+          }
+
+          await api.post(`/logs/${pacienteID}/`, payload);
+          console.log("[LOGs] Log de crear entrada a la bitácora creado");
+        } catch (err) {
+          console.error("[LOGs] Error creando log de crear entrada a la bitácora");
+        }
+      }
+
+
     } catch(err) {
       console.log("[bitácora: entrada-agregar] Error:", err);
       Alert.alert(

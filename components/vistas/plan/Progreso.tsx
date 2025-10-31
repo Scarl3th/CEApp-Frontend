@@ -168,6 +168,23 @@ export function Progreso() {
           fecha: new Date(p.fecha),
         })),
       }));
+
+      //Agregamos un log de que se accedió al progreso
+      if (user?.role === "profesional") {
+        try {
+          const payload = 
+          {
+            "elemento": "progreso",
+            "accion": "acceder",
+          }
+          await api.post(`/logs/${pacienteID}/`, payload);
+          console.log("[LOGs] Log de acceso a progreso");
+        } catch (err) {
+          console.error("[LOGs] Error creando log de acceso a progreso");
+        }
+      }
+
+  
       setOG(OGFechas);
       setError(false);
     } catch (err) {

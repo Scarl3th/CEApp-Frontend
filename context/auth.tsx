@@ -61,6 +61,29 @@ export const AuthProvider = ({ children }: AuthProviderType) => {
       setAuthToken(authtoken);
       setRefreshToken(refreshToken);
       setUser({ id: id, email: email, nombre: nombre, role: role, cargo: cargo, institucion: institucion });
+
+      //Si salió bien creamos un log de inicio de sesión si es un profesional
+      if(role == "profesional"){
+        try{
+          const res = await axios.post(`${API_BASE_URL}/logs/new-session/`, 
+            {},
+            {headers: { Authorization: `Bearer ${authtoken}`}}
+          );
+          console.log("[LOG: inicio de sesión] Log de inicio de sesión creado");
+        }
+        catch (err: unknown){
+          if (axios.isAxiosError(err)) {
+            console.error(
+              "[LOG: inicio de sesión] Error al crear log de inicio de sesión:",
+              "Status:", err.response?.status ?? "no disponible",
+              "Data:", err.response?.data ?? err.message
+            );
+          } else {
+            console.error("[LOG: inicio de sesión] Error inesperado:", err);
+          }
+        }
+      }
+
     } catch (error: unknown) {
       console.error("[auth] Error al iniciar sesión:", error);
       throw error;

@@ -15,6 +15,7 @@ import { formatearFechaString } from "@/components/base/FormatearFecha";
 import { TarjetaExpandible, TarjetaPequeña } from "@/components/base/Tarjeta";
 import { ObjetivoEspecificoFormularioModal } from "./ObjetivoEspecificoFormulario";
 import { BotonAgregar, BotonDetalles, BotonDesvincular, BotonEditar, BotonEliminar, BotonVincular, BotonTab } from "@/components/base/Boton";
+import { useLocalSearchParams } from "expo-router";
 
 //OBJETIVO ESPECÍFICO
 interface Profesional {
@@ -103,6 +104,9 @@ const ObjetivoEspecificoItem = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [showEditar, setShowEditar] = useState(false);
+  const { paciente } = useLocalSearchParams();
+  const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
+  const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
 
   //FETCH: PROFESIONALES (VINCULADOS AL OBJETIVO ESPECÍFICO)
   const fetchProfesionales = async () => {
@@ -141,6 +145,24 @@ const ObjetivoEspecificoItem = ({
               const api = createApi(authToken, refreshToken, setAuthToken);
               const res = await api.delete(`/objetivos-especificos/${objetivoEspecifico.id}/`);
               console.log("[plan] Objetivo específico eliminado correctamente...");
+
+              //Agregamos un log de que eliminamos objetivo específico
+              if (user?.role === "profesional") {
+                try {
+                  const payload = 
+                  {
+                    "elemento": "objetivo especifico",
+                    "nombre_elemento": objetivoEspecifico.titulo,
+                    "accion": "eliminar",
+                  }
+                  await api.post(`/logs/${pacienteID}/`, payload);
+                  console.log("[LOGs] Log de edición objetivo específico creado");
+                } catch (err) {
+                  console.error("[LOGs] Error creando log de edición objetivo específico");
+                }
+              }
+
+
               setToast({ text1: "Objetivo específico eliminado exitosamente.", type: "success" });
               onChange();
             } catch (err) {

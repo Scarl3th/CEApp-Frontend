@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 
 export function VisualizadorPDF(){
 
-  const {authToken, refreshToken, createApi, setAuthToken} = useAuth();
+  const {authToken, refreshToken, createApi, setAuthToken, user} = useAuth();
   const params = useLocalSearchParams();
   const id = params.id;
   const ruta = decodeURIComponent(usePathname());
@@ -113,6 +113,24 @@ export function VisualizadorPDF(){
   try {
       const api = createApi(authToken, refreshToken, setAuthToken);
       const res = await api.get(`/informes/${pacienteID}/${id}`);
+
+
+      //Guardar log si es profesional
+      if (user?.role === "profesional") {
+        try {
+          const api = createApi(authToken, refreshToken, setAuthToken);
+          const payload = 
+          {
+            "elemento": "informe",
+            "accion": "descargar",
+            "nombre_elemento": res.titulo,
+          }
+          await api.post(`/logs/${pacienteID}/`, payload);
+          console.log("[LOGs] Log de descargar informe creado");
+        } catch (err) {
+          console.error("[LOGs] Error creando log de descargar informe");
+        }
+      }
       setUrl(res.data.url);
   } catch (error: any) {
       console.error("Error:", error.response?.data?.message || error.message);
