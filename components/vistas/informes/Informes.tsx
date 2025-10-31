@@ -64,7 +64,7 @@ interface InformeItemProps {
     } | null>
   >;
 }
-const InformeItem = ({
+export const InformeItem = ({
   informe,
   onChange,
   setToast

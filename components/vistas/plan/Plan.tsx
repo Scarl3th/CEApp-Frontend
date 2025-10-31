@@ -58,7 +58,7 @@ interface ObjetivoGeneralItemProps {
     } | null>
   >;
 }
-const ObjetivoGeneralItem = ({
+export const ObjetivoGeneralItem = ({
   objetivoGeneral,
   onChange,
   setToast

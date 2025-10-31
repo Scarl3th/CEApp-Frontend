@@ -336,14 +336,11 @@ export function SelectorPaciente() {
             )}
           </Pressable>
         </View>
-
-
-
       </CustomModal>
       {/* TUTORIAL */}
       <ModalTutorial
         tipo={"tutorial"}
-        visible={showTutorial}
+        visible={!showTerminosYCondiciones && showTutorial}
         onClose={() => setShowTutorial(false)}
         selectorPaciente={true}
         rol={rol}
