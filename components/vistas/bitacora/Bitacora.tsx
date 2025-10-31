@@ -67,7 +67,7 @@ export function EntradaIcono({
 interface EntradaItemProps {
   entrada: Entrada;
 }
-const EntradaItem = ({
+export const EntradaItem = ({
   entrada
 }: EntradaItemProps) => {
   const getAnimo = (id?: string) => {

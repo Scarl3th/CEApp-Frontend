@@ -86,9 +86,9 @@ interface ObjetivoEspecificoItemProps {
       type: "success" | "error";
     } | null>
   >;
-  objetivoGeneralID: string;
+  objetivoGeneralID?: string;
 }
-const ObjetivoEspecificoItem = ({
+export const ObjetivoEspecificoItem = ({
   objetivoEspecifico,
   onChange,
   setToast,
@@ -275,21 +275,23 @@ const ObjetivoEspecificoItem = ({
         }
       />
       {/* MODAL */}
-      <ObjetivoEspecificoFormularioModal
-        visible={showEditar}
-        onClose={() => {
-          handleEditar(false);
-          onChange();
-        }}
-        onSuccess={() => {
-          handleEditar(false);
-          onChange();
-          setToast({ text1: "Objetivo específico guardado exitosamente.", type: "success" });
-        }}
-        edicion={true}
-        objetivoEspecificoID={objetivoEspecifico.id}
-        objetivoGeneralID={objetivoGeneralID}
-      />
+      {objetivoGeneralID && (
+        <ObjetivoEspecificoFormularioModal
+          visible={showEditar}
+          onClose={() => {
+            handleEditar(false);
+            onChange();
+          }}
+          onSuccess={() => {
+            handleEditar(false);
+            onChange();
+            setToast({ text1: "Objetivo específico guardado exitosamente.", type: "success" });
+          }}
+          edicion={true}
+          objetivoEspecificoID={objetivoEspecifico.id}
+          objetivoGeneralID={objetivoGeneralID}
+        />
+      )}
     </View>
   );
 };
