@@ -11,7 +11,10 @@ import { CustomModal } from "@/components/base/Modal";
 import { TarjetaOpcion } from "@/components/base/Tarjeta";
 import { BotonEsquinaSuperior } from "@/components/base/Boton";
 import { PacienteItem } from "@/components/vistas/SelectorPaciente";
-import { Header, HeaderPaciente } from "@/components/layout/Header";
+import { HeaderPaciente } from "@/components/layout/Header";
+import { InformeItem } from "@/components/vistas/informes/Informes";
+import { EspacioUsadoBarra } from "@/components/vistas/informes/Componentes";
+import { TarjetaTresPuntos } from "@/components/base/Tarjeta";
 
 //TUTORIALES
 export interface Tutoriales {
@@ -275,9 +278,7 @@ export function ModalTutorial({
       onCloseOmitir={true}
       //ACÁ PUEDES CAMBIAR LA ALTURA DEL MODAL DE CADA VISTA
       tipoTutorialHeight={
-        selectorPaciente ? 0.7 :
-        inicio ? 0.8 :
-        0.7
+        0.8
       }
       padding={"p-0"}
     >
@@ -414,8 +415,8 @@ export function BotonAgregarTutorial({
     <View
       className="rounded-full my-4 justify-center items-center"
       style={{
-        width: 100,
-        height: 100,
+        width: 80,
+        height: 80,
         backgroundColor: colors.secondary,
         elevation: 5,
       }}
@@ -432,7 +433,6 @@ interface TutorialInicioProps {
 }
 export function TutorialInicio({
   onClose,
-  rol,
 }: TutorialInicioProps) {
   const [fontsLoaded] = useFonts({
     Poppins_500Medium,
@@ -446,7 +446,7 @@ export function TutorialInicio({
       <View
         className={`flex-1 w-full ${paso == 0 || paso == 5 ? "items-end" : "items-center"} justify-center`}
         style={{
-          backgroundColor: colors.primary,
+          backgroundColor: colors.lightblue,
           minHeight: 200,
           maxHeight: 200,
           position: paso == 0 || paso == 5 ? "relative" : undefined, 
@@ -466,42 +466,88 @@ export function TutorialInicio({
                 left: 16,
               }}
             />
-            <View className="flex-1 p-4">
-              <View className="flex-1 items-end justify-center">
-                <Text className="text-white text-xl text-right" style={{ fontFamily: "Poppins_500Medium" }}>¡Bienvenid@ a</Text>
-                <Text className="text-white text-4xl text-right">
-                  <Text style={{ fontFamily: "Poppins_800ExtraBold" }}>CEA</Text>
-                  <Text style={{ fontFamily: "Poppins_500Medium" }}>pp!</Text>
+            <View className="flex-1 px-4">
+              <View className="flex-1 flex-column justify-center">
+                <Text
+                  className="text-primary font-bold text-xl text-right w-full"
+                  style={{
+                    includeFontPadding: false,
+                  }}
+                >
+                  ¡Bienvenid@ a
+                </Text>
+                <Text
+                  className="text-primary text-4xl text-right w-full"
+                  style={{
+                    fontFamily: "Poppins_500Medium",
+                    includeFontPadding: false,
+                  }}
+                >
+                  <Text style={{ fontFamily: "Poppins_800ExtraBold" }}>
+                    CEA
+                  </Text>
+                  pp!
                 </Text>
               </View>
-            </View>
+            </View>            
           </>
         ) : paso == 1 ? (
-          <Ionicons name={Icons["inicio"].iconName} color={colors.white} size={100}/>
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["inicio"].iconName} color={colors.white} size={80}/>
+          </View>
         ) : paso == 2 ? (
           <View className="w-full">
             <HeaderPaciente nombre={"Santiago González"}/>
           </View>
         ) : paso == 3 ? (
-          <Ionicons name={Icons["menu"].iconName} color={colors.white} size={100}/>
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["menu"].iconName} color={colors.white} size={80}/>
+          </View>
         ) : paso == 4 ? (
-          <Ionicons name={Icons["tutoriales"].iconName} color={colors.white} size={100}/>
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["tutoriales"].iconName} color={colors.white} size={80}/>
+          </View>
         ) : null}
       </View>
       {/* CUERPO */}
-      <View className="flex-1 p-4 justify-start">
+      <View className="flex-1 p-4 gap-4 justify-start">
         {/* TÍTULO */}
-        {paso == 0 || paso == 5 ? (
-          null
-        ) : (
-          <Titulo>
-            {paso == 1 ? "Inicio" :
-            paso == 2 ? "Paciente" :
-            paso == 3 ? "Navegación" :
-            paso == 4 ? "Tutoriales" :
-            `Paso ${paso}`}
-          </Titulo>
-        )}
+        <Titulo>
+          {paso == 0 ? "¡Bienvenid@! 👋" :
+          paso == 1 ? "Inicio" :
+          paso == 2 ? "Paciente" :
+          paso == 3 ? "Navegación" :
+          paso == 4 ? "Tutoriales" :
+          paso == 5 ? "¡Tutorial completado! 👏" :
+          ""}
+        </Titulo>
         {/* TEXTO */}
         <View className="px-4 gap-4 flex-column">
           {paso == 0 ? (
@@ -547,9 +593,6 @@ export function TutorialInicio({
           ) : paso == 5 ? (
             <>
               <TextoTutorial>
-                ¡Tutorial completado! 👏
-              </TextoTutorial>
-              <TextoTutorial>
                 Explora CEApp a tu ritmo y prueba todas sus herramientas.
               </TextoTutorial>
             </>
@@ -567,6 +610,477 @@ export function TutorialInicio({
   );
 }
 
+//TUTORIAL: CALENDARIO
+interface TutorialCalendarioProps {
+  onClose: () => void;
+  rol: string;
+}
+export function TutorialCalendario({
+  onClose,
+  rol,
+}: TutorialCalendarioProps) {
+  const [paso, setPaso] = useState(0);
+  const pasosTotales = 4;
+  return (
+    <View className="flex-1 py-8 gap-4">
+      {/* BANNER */}
+      <View
+        className={`flex-1 w-full items-center justify-center`}
+        style={{
+          backgroundColor: colors.lightblue,
+          minHeight: 200,
+          maxHeight: 200,
+        }}
+        pointerEvents="none"
+      >
+        {paso == 0 ? (
+          <>
+            <View
+              className="bg-primary p-4 rounded-full"
+              style={{
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 3.5,
+                elevation: 2,
+              }}
+            >
+              <Ionicons name={Icons["calendario"].iconName} color={colors.white} size={80}/>
+            </View>            
+          </>
+        ) : paso == 3 ? (
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["agregar"].iconName} color={colors.white} size={80}/>
+          </View>
+        ) : paso == 1 ? (
+          <View className="flex-1 p-4 items-center justify-center">
+            <TarjetaTresPuntos
+              titulo="Sesión de terapia"
+              iconoFondoColor={colors.primary}
+              subtituloAlternativo={
+                <View className="gap-1">
+                  <Text className="text-mediumdarkgrey text-sm">
+                      {"04:00 PM - 05:00 PM"}
+                    </Text>
+                    <View className="gap-1 flex-row items-center">
+                      <Ionicons name={Icons["usuario"].iconName} size={15} color={colors.mediumgrey}/>
+                      <Text className="text-mediumdarkgrey text-sm">
+                        {"María Pérez"}
+                      </Text>
+                    </View>
+                    <View className="gap-1 flex-row items-center">
+                      <Ionicons name={Icons["paciente"].iconName} size={15} color={colors.mediumgrey}/>
+                      <Text className="text-mediumdarkgrey text-sm">
+                        {"Santiago González"}
+                      </Text>
+                    </View>
+                </View>
+              }
+            />
+          </View>
+        ) : paso == 2 ? (
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["tresPuntos"].iconName} color={colors.white} size={80}/>
+          </View>
+        ) : null}
+      </View>
+      {/* CUERPO */}
+      <View className="flex-1 p-4 justify-start">
+        {/* TÍTULO */}
+        <Titulo>
+          {paso == 0 ? "Tu calendario" :
+          paso == 3 ? "Crear eventos" :
+          paso == 1 ? "Ver eventos" :
+          paso == 2 ? "Opciones" :
+          ""}
+        </Titulo>
+        {/* TEXTO */}
+        <View className="px-4 gap-4 flex-column">
+          {paso == 0 ? (
+            <>
+              <TextoTutorial>
+                Esta es tu pantalla de <Text className="font-bold text-primary">calendario</Text>, donde vas a poder visualizar y gestionar tus eventos.
+              </TextoTutorial>
+            </>
+          ) : paso == 3 ? (
+            <>
+              <TextoTutorial>Puedes crear eventos presionando el botón <Ionicons name={Icons["agregar"].iconName} size={16}/>, ubicado en la esquina inferior derecha.</TextoTutorial>
+              <TextoTutorial>Una vez listo, presiona el botón <Text className="font-bold text-secondary">guardar</Text>.</TextoTutorial>
+            </>
+          ) : paso == 1 ? (
+            <>
+              <TextoTutorial>Puedes ver una lista de los distintos eventos dentro de tu calendario, seleccionando entre las distintas fechas del calendario.</TextoTutorial>
+            </>
+          ) : paso == 2 ? (
+            <>
+              <TextoTutorial>
+                Puedes presionar el botón <Ionicons name={Icons["tresPuntos"].iconName} size={16}/> ubicado a la derecha de cada evento para:
+              </TextoTutorial>
+              <TextoTutorial>• Editar el evento.</TextoTutorial>
+              <TextoTutorial>• Eliminar el evento.</TextoTutorial>
+            </>
+          ) : null}
+        </View>
+      </View>
+      {/* FOOTER */}
+      <FooterTutorial
+        paso={paso}
+        setPaso={setPaso}
+        pasosTotales={pasosTotales}
+        onClose={onClose}
+      />
+    </View>
+  );
+}
+
+//TUTORIAL: INFORMES
+interface TutorialInformesProps {
+  onClose: () => void;
+  rol: string;
+}
+export function TutorialInformes({
+  onClose,
+}: TutorialInformesProps) {
+  const [paso, setPaso] = useState(0);
+  const pasosTotales = 5;
+  return (
+    <View className="flex-1 py-8 gap-4">
+      {/* BANNER */}
+      <View
+        className={`flex-1 w-full items-center justify-center`}
+        style={{
+          backgroundColor: colors.lightblue,
+          minHeight: 200,
+          maxHeight: 200,
+        }}
+        pointerEvents="none"
+      >
+        {paso == 0 ? (
+          <>
+            <View
+              className="bg-primary p-4 rounded-full"
+              style={{
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 3.5,
+                elevation: 2,
+              }}
+            >
+              <Ionicons name={Icons["informes"].iconName} color={colors.white} size={80}/>
+            </View>            
+          </>
+        ) : paso == 3 ? (
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["agregar"].iconName} color={colors.white} size={80}/>
+          </View>
+        ) : paso == 1 ? (
+          <View className="flex-1 p-4 items-center justify-center">
+            <InformeItem
+              informe={{
+                id: "1",
+                titulo: "Evaluación de habilidades",
+                autor_creacion: "María Pérez",
+                fecha_creacion: "13/11/2025",
+                tamano: "",
+              }}
+              onChange={() => {}}
+              setToast={() => {}}
+            />
+          </View>
+        ) : paso == 2 ? (
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["tresPuntos"].iconName} color={colors.white} size={80}/>
+          </View>
+        ) : paso == 4 ? (
+          <View
+            className="bg-light p-4 rounded-lg"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <EspacioUsadoBarra
+              espacioUsado={250 * 1024 * 1024}
+              espacioMaximo={500 * 1024 * 1024}
+            />
+          </View>
+        ) : null}
+      </View>
+      {/* CUERPO */}
+      <View className="flex-1 p-4 justify-start">
+        {/* TÍTULO */}
+        <Titulo>
+          {paso == 0 ? "Informes" :
+          paso == 3 ? "Subir informes" :
+          paso == 1 ? "Ver informes" :
+          paso == 2 ? "Opciones" :
+          paso == 4 ? "Espacio" :
+          ""}
+        </Titulo>
+        {/* TEXTO */}
+        <View className="px-4 gap-4 flex-column">
+          {paso == 0 ? (
+            <>
+              <TextoTutorial>
+                Esta es tu pantalla de <Text className="font-bold text-primary">informes</Text>, donde vas a poder subir, ver y descargar informes que sean relevantes para el plan de trabajo de tu paciente.
+              </TextoTutorial>
+            </>
+          ) : paso == 3 ? (
+            <>
+              <TextoTutorial>Puedes subir informes presionando el botón <Ionicons name={Icons["agregar"].iconName} size={16}/>, ubicado en la esquina inferior derecha.</TextoTutorial>
+              <TextoTutorial>Podrás subir un archivo de tu dispositivo que cumpla con ciertos requerimientos.</TextoTutorial>
+              <TextoTutorial>Una vez listo, presiona el botón <Text className="font-bold text-secondary">guardar</Text>.</TextoTutorial>
+            </>
+          ) : paso == 1 ? (
+            <>
+              <TextoTutorial>Puedes ver una lista de los distintos informes subidos dentro del plan de trabajo de tu paciente.</TextoTutorial>
+            </>
+          ) : paso == 2 ? (
+            <>
+              <TextoTutorial>
+                Puedes presionar el botón <Ionicons name={Icons["tresPuntos"].iconName} size={16}/> ubicado a la derecha de cada informe para:
+              </TextoTutorial>
+              <TextoTutorial>• Ver el contenido del informe.</TextoTutorial>
+              <TextoTutorial>• Descargar el informe.</TextoTutorial>
+              <TextoTutorial>• Ver más información.</TextoTutorial>
+            </>
+          ) : paso == 4 ? (
+            <>
+              <TextoTutorial>
+                Puedes subir hasta 500 MB de archivos en cada plan de trabajo.
+              </TextoTutorial>
+              <TextoTutorial>
+                La barra de progreso indica tu espacio usado.
+              </TextoTutorial>
+            </>
+          ) : null}
+        </View>
+      </View>
+      {/* FOOTER */}
+      <FooterTutorial
+        paso={paso}
+        setPaso={setPaso}
+        pasosTotales={pasosTotales}
+        onClose={onClose}
+      />
+    </View>
+  );
+}
+
+//TUTORIAL: MEDICAMENTOS
+interface TutorialMedicamentosProps {
+  onClose: () => void;
+  rol: string;
+}
+export function TutorialMedicamentos({
+  onClose,
+  rol,
+}: TutorialMedicamentosProps) {
+  const [paso, setPaso] = useState(0);
+  const pasosTotales = rol === "cuidador" ? 5 : 2;
+  const horarios = [
+    new Date("2025-10-30T07:00:00"),
+    new Date("2025-10-30T14:00:00"),
+    new Date("2025-10-30T21:00:00"),
+  ];
+
+  return (
+    <View className="flex-1 py-8 gap-4">
+      {/* BANNER */}
+      <View
+        className={`flex-1 w-full items-center justify-center`}
+        style={{
+          backgroundColor: colors.lightblue,
+          minHeight: 200,
+          maxHeight: 200,
+        }}
+        pointerEvents="none"
+      >
+        {paso == 0 ? (
+          <>
+            <View
+              className="bg-primary p-4 rounded-full"
+              style={{
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 3.5,
+                elevation: 2,
+              }}
+            >
+              <Ionicons name={Icons["medicamentos"].iconName} color={colors.white} size={80}/>
+            </View>            
+          </>
+        ) : paso == 1 ? (
+          <View className="flex-1 p-4 items-center justify-center">
+            <TarjetaTresPuntos
+              titulo="Paracetamol 500mg"
+              iconoFondoColor={colors.primary}
+              subtituloAlternativo={
+                <View className="gap-1">
+                  <View className="flex-row items-center gap-1">
+                    <Ionicons
+                      name="receipt-outline"
+                      size={15}
+                      color={colors.mediumgrey}
+                    />
+                    <Text className="text-mediumdarkgrey text-sm">1 tableta</Text>
+                  </View>
+                  <View className="flex-row flex-wrap gap-2 mt-1">
+                    {horarios.map((hora, index) => (
+                      <View
+                        key={index}
+                        className="px-3 py-1 rounded-full"
+                        style={{ backgroundColor: colors.primary }}
+                      >
+                        <Text className="text-white text-sm">
+                          {hora.toLocaleTimeString("es-CL", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              }
+              tresPuntosContenido={
+                rol === "cuidador" ? (
+                  <View></View>
+                ) : null
+              }
+            />
+          </View>
+        ) : paso == 3 ? (
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["agregar"].iconName} color={colors.white} size={80}/>
+          </View>
+        ) : paso == 4 ? (
+          <View className="flex-1 p-4 items-center justify-center">
+            <TarjetaTresPuntos
+              titulo="💊 Recordatorio de medicamento"
+              iconoFondoColor={colors.primary}
+              subtitulo={"En 15 minutos, Santiago González debe tomar Paracetamol 500mg (1 tableta)"}
+            />
+          </View>
+        ) : paso == 2 ? (
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["tresPuntos"].iconName} color={colors.white} size={80}/>
+          </View>
+        ) : null}
+      </View>
+      {/* CUERPO */}
+      <View className="flex-1 p-4 justify-start">
+        {/* TÍTULO */}
+        <Titulo>
+          {paso == 0 ? "Medicamentos" :
+          paso == 1 ? "Ver medicamentos" :
+          paso == 3 ? "Registrar medicamentos" :
+          paso == 4 ? "Recordatorios" :
+          paso == 2 ? "Opciones" :
+          ""}
+        </Titulo>
+        {/* TEXTO */}
+        <View className="px-4 gap-4 flex-column">
+          {paso == 0 ? (
+            <>
+              <TextoTutorial>
+                {`Esta es tu pantalla de `}<Text className="font-bold text-primary">medicamentos</Text>{`, donde vas a poder visualizar ${rol === "cuidador" ? "y registrar " : " "}los medicamentos de tu paciente`}.
+              </TextoTutorial>
+            </>
+          ) : paso == 1 ? (
+            <>
+              <TextoTutorial>Puedes ver una lista de los distintos medicamentos de tu paciente, seleccionando entre los distintos días de la semana.</TextoTutorial>
+            </>
+          ) : rol === "cuidador" && paso == 3 ? (
+            <>
+              <TextoTutorial>Puedes registrar los medicamentos de tu paciente presionando el botón <Ionicons name={Icons["agregar"].iconName} size={16}/>, ubicado en la esquina inferior derecha.</TextoTutorial>
+              <TextoTutorial>Una vez listo, presiona el botón <Text className="font-bold text-secondary">guardar</Text>.</TextoTutorial>
+            </>
+          ) : rol === "cuidador" && paso == 4 ? (
+            <>
+              <TextoTutorial>Al registrar medicamentos, también puedes configurar recordatorios para los medicamentos que necesites y elegir cuánto antes quieres recibir la notificación.</TextoTutorial>
+            </>
+          ) : rol === "cuidador" && paso == 2 ? (
+            <>
+              <TextoTutorial>Puedes presionar el botón <Ionicons name={Icons["tresPuntos"].iconName} size={16}/> ubicado a la derecha de cada medicamento para:</TextoTutorial>
+              <TextoTutorial>• Editar el medicamento.</TextoTutorial>
+              <TextoTutorial>• Eliminar el medicamento.</TextoTutorial>
+            </>
+          ) : null}
+        </View>
+      </View>
+      {/* FOOTER */}
+      <FooterTutorial
+        paso={paso}
+        setPaso={setPaso}
+        pasosTotales={pasosTotales}
+        onClose={onClose}
+      />
+    </View>
+  );
+}
+
+
 //TUTORIAL: SELECTOR PACIENTE
 interface TutorialSelectorPacienteProps {
   onClose: () => void;
@@ -579,94 +1093,118 @@ export function TutorialSelectorPaciente({
   const [paso, setPaso] = useState(0);
   const pasosTotales = 3;
   return (
-    <View className="flex-1 px-4 py-6">
-      {/* TÍTULO */}
-        {paso == 0 ? (
-          null
-        ) : (
-          <Titulo
-            subtitulo={
-              paso == 1 ? "Agregar un paciente" :
-              paso == 2 ? "Seleccionar un paciente" :
-              undefined
-            }
-            subtituloTamano={"lg"}
-          >
-            {
-              paso == 0 ? "Selector de paciente" :
-              paso > 0 ? `Paso ${paso}` :
-              ""
-            }
-          </Titulo>
-        )}
-      <View className="flex-1 items-center justify-center gap-4" pointerEvents="none">
-        {/* IMAGEN */}
-        {paso == 0 ? (
-          null
-        ) : (
-          <View className="flex-1 w-full items-center justify-center">
-            {paso == 1 ? (
-              <BotonAgregarTutorial/>
-            ) : paso == 2 ? (
-              <View className="w-full" style={{ height: 100 }}>
-                <PacienteItem
-                  paciente={{
-                    id: "1",
-                    nombre: "Santiago González",
-                    cuidador: "María González",
+    <View className="flex-1 py-8 gap-4">
+      {/* BANNER */}
+      <View
+        className={`flex-1 w-full ${paso == 0 || paso == 5 ? "items-end" : "items-center"} justify-center`}
+        style={{
+          backgroundColor: colors.lightblue,
+          minHeight: 200,
+          maxHeight: 200,
+          position: paso == 0 || paso == 5 ? "relative" : undefined, 
+        }}
+        pointerEvents="none"
+      >
+        {paso == 0 || paso == 5 ? (
+          <>
+            <Image
+              source={images.CEO}
+              style={{
+                width: 180,
+                height: 180,
+                resizeMode: "contain",
+                position: "absolute",
+                top: 30,
+                left: 16,
+              }}
+            />
+            <View className="flex-1 px-4">
+              <View className="flex-1 flex-column justify-center">
+                <Text
+                  className="text-primary font-bold text-xl text-right w-full"
+                  style={{
+                    includeFontPadding: false,
                   }}
-                  isProfesional={rol === "profesional"}
-                />
+                >
+                  ¡Bienvenid@ a
+                </Text>
+                <Text
+                  className="text-primary text-4xl text-right w-full"
+                  style={{
+                    fontFamily: "Poppins_500Medium",
+                    includeFontPadding: false,
+                  }}
+                >
+                  <Text style={{ fontFamily: "Poppins_800ExtraBold" }}>
+                    CEA
+                  </Text>
+                  pp!
+                </Text>
               </View>
-            ) : null}
+            </View>            
+          </>
+        ) : paso == 1 ? (
+          <View className="flex-1 w-full p-4 justify-center" style={{ height: 100 }}>
+            <PacienteItem
+              paciente={{
+                id: "1",
+                nombre: "Santiago González",
+                cuidador: "María González",
+              }}
+              isProfesional={rol === "profesional"}
+            />
           </View>
-        )}
+        ) : paso == 2 ? (
+          <View
+            className="bg-primary p-4 rounded-full"
+            style={{
+              shadowColor: colors.black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.5,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name={Icons["agregar"].iconName} color={colors.white} size={80}/>
+          </View>
+        ) : null}
+      </View>
+      {/* CUERPO */}
+      <View className="flex-1 p-4 gap-4 justify-start">
+        {/* TÍTULO */}
+        <Titulo>
+          {paso == 0 ? "Selección de paciente" :
+          paso == 1 ? "Ver pacientes" :
+          paso == 2 ? "Agregar un paciente" :
+          ""}
+        </Titulo>
         {/* TEXTO */}
-        <View className="flex-column gap-1">
+        <View className="px-4 gap-4 flex-column">
           {paso == 0 ? (
             <>
               <TextoTutorial>
-                ¡Bienvenid@ a CEApp!
-              </TextoTutorial>
-              <TextoTutorial>
-                En esta pantalla podrás seleccionar un paciente o crear uno nuevo para comenzar a usar la aplicación.
+                {`Esta es tu pantalla de `}<Text className="font-bold text-primary">selección de paciente</Text>{`, donde vas a poder visualizar ${rol === "cuidador" ? "y crear " : "y unirte a "}los planes de trabajo de tus pacientes.`}
               </TextoTutorial>
             </>
-          ) : paso == 1 && rol == "cuidador" ? (
+          ) : paso == 1 ? (
             <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Completa los datos solicitados en el formulario.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Confirma para crear un nuevo paciente.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "profesional" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Completa los datos solicitados en el formulario.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Confirma para crear un nuevo paciente.
-              </TextoTutorial>
+              <TextoTutorial>Puedes ver una lista de tus distintos pacientes.</TextoTutorial>
+              <TextoTutorial>Presiona un paciente para acceder a su plan de trabajo.</TextoTutorial>
             </>
           ) : paso == 2 ? (
             <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Completa los datos solicitados en el formulario.
-              </TextoTutorial>
-              <TextoTutorial>
-                • Confirma para crear un nuevo paciente.
-              </TextoTutorial>
+              <TextoTutorial>Puedes agregar un paciente presionando el botón <Ionicons name={Icons["agregar"].iconName} size={16}/>, ubicado en la esquina inferior derecha.</TextoTutorial>
+              {rol === "cuidador" ? (
+                <>
+                  <TextoTutorial>Tendrás que ingresar información básica del paciente en los campos solicitados.</TextoTutorial>
+                  <TextoTutorial>Una vez listo, presiona el botón <Text className="font-bold text-secondary">guardar</Text>.</TextoTutorial>
+                </>
+              ) : (
+                <>
+                  <TextoTutorial>Tendrás que solicitar un código al cuidador del paciente e ingresarlo en el campo provisto.</TextoTutorial>
+                  <TextoTutorial>Una vez listo, presiona el botón <Text className="font-bold text-secondary">ingresar</Text>.</TextoTutorial>
+                </>
+              )}
             </>
           ) : null}
         </View>
@@ -738,7 +1276,7 @@ export function TutorialPlan({
           ) : paso == 1 ? (
             <BotonAgregarTutorial/>
           ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
+            <View className="w-full" style={{ height: 80 }}>
               <PacienteItem
                 paciente={{
                   id: "1",
@@ -840,7 +1378,7 @@ export function TutorialBitacora({
           ) : paso == 1 ? (
             <BotonAgregarTutorial/>
           ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
+            <View className="w-full" style={{ height: 80 }}>
               <PacienteItem
                 paciente={{
                   id: "1",
@@ -942,7 +1480,7 @@ export function TutorialChat({
           ) : paso == 1 ? (
             <BotonAgregarTutorial/>
           ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
+            <View className="w-full" style={{ height: 80 }}>
               <PacienteItem
                 paciente={{
                   id: "1",
@@ -1009,397 +1547,6 @@ export function TutorialProgreso({
   const pasosTotales = 3;
   return (
     <View className="flex-1 px-4 py-6">
-      <View className="flex-1 items-center justify-start gap-4" pointerEvents="none">
-        {/* TÍTULO */}
-        <Titulo
-          subtitulo={
-            paso == 1 ? "Agregar un paciente" :
-            paso == 2 ? "Seleccionar un paciente" :
-            undefined
-          }
-          subtituloTamano={"base"}
-        >
-          {
-            paso == 0 ? "Progreso" :
-            paso > 0 ? `Paso ${paso}` :
-            ""
-          }
-        </Titulo>
-        {/* IMAGEN */}
-        <View
-          className="flex-1 w-full items-center justify-center"
-          style={{
-            height: 160,
-          }}
-        >
-          {paso == 0 ? (
-            <Image
-              source={images.CEO}
-              style={{
-                width: Platform.OS === "web" ? 40 : 160,
-                height: Platform.OS === "web" ? 40 : 160,
-              }}
-              resizeMode={"contain"}
-            />
-          ) : paso == 1 ? (
-            <BotonAgregarTutorial/>
-          ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
-              <PacienteItem
-                paciente={{
-                  id: "1",
-                  nombre: "Santiago González",
-                  cuidador: "María González",
-                }}
-                isProfesional={rol === "profesional"}
-              />
-            </View>
-          ) : null}
-        </View>
-        {/* TEXTO */}
-        <View className="flex-column gap-1">
-          {paso == 0 ? (
-            <>
-              <TextoTutorial>
-                ¡Bienvenid@ a CEApp!</TextoTutorial>
-              <TextoTutorial>
-                En esta pantalla podrás seleccionar un paciente o crear uno nuevo para comenzar a usar la aplicación.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "cuidador" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "profesional" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 2 ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : null}
-        </View>
-      </View>
-      {/* FOOTER */}
-      <FooterTutorial
-        paso={paso}
-        setPaso={setPaso}
-        pasosTotales={pasosTotales}
-        onClose={onClose}
-      />
-    </View>
-  );
-}
-
-//TUTORIAL: INFORMES
-interface TutorialInformesProps {
-  onClose: () => void;
-  rol: string;
-}
-export function TutorialInformes({
-  onClose,
-  rol,
-}: TutorialInformesProps) {
-  const [paso, setPaso] = useState(0);
-  const pasosTotales = 3;
-  return (
-    <View className="flex-1 px-4 py-6">
-      <View className="flex-1 items-center justify-start gap-4" pointerEvents="none">
-        {/* TÍTULO */}
-        <Titulo
-          subtitulo={
-            paso == 1 ? "Agregar un paciente" :
-            paso == 2 ? "Seleccionar un paciente" :
-            undefined
-          }
-          subtituloTamano={"base"}
-        >
-          {
-            paso == 0 ? "Informes" :
-            paso > 0 ? `Paso ${paso}` :
-            ""
-          }
-        </Titulo>
-        {/* IMAGEN */}
-        <View
-          className="flex-1 w-full items-center justify-center"
-          style={{
-            height: 160,
-          }}
-        >
-          {paso == 0 ? (
-            <Image
-              source={images.CEO}
-              style={{
-                width: Platform.OS === "web" ? 40 : 160,
-                height: Platform.OS === "web" ? 40 : 160,
-              }}
-              resizeMode={"contain"}
-            />
-          ) : paso == 1 ? (
-            <BotonAgregarTutorial/>
-          ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
-              <PacienteItem
-                paciente={{
-                  id: "1",
-                  nombre: "Santiago González",
-                  cuidador: "María González",
-                }}
-                isProfesional={rol === "profesional"}
-              />
-            </View>
-          ) : null}
-        </View>
-        {/* TEXTO */}
-        <View className="flex-column gap-1">
-          {paso == 0 ? (
-            <>
-              <TextoTutorial>
-                ¡Bienvenid@ a CEApp!</TextoTutorial>
-              <TextoTutorial>
-                En esta pantalla podrás seleccionar un paciente o crear uno nuevo para comenzar a usar la aplicación.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "cuidador" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "profesional" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 2 ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : null}
-        </View>
-      </View>
-      {/* FOOTER */}
-      <FooterTutorial
-        paso={paso}
-        setPaso={setPaso}
-        pasosTotales={pasosTotales}
-        onClose={onClose}
-      />
-    </View>
-  );
-}
-
-//TUTORIAL: CALENDARIO
-interface TutorialCalendarioProps {
-  onClose: () => void;
-  rol: string;
-}
-export function TutorialCalendario({
-  onClose,
-  rol,
-}: TutorialCalendarioProps) {
-  const [paso, setPaso] = useState(0);
-  const pasosTotales = 3;
-  return (
-    <View className="flex-1 px-4 py-6">
-      <View className="flex-1 items-center justify-start gap-4" pointerEvents="none">
-        {/* TÍTULO */}
-        <Titulo
-          subtitulo={
-            paso == 1 ? "Agregar un paciente" :
-            paso == 2 ? "Seleccionar un paciente" :
-            undefined
-          }
-          subtituloTamano={"base"}
-        >
-          {
-            paso == 0 ? "Calendario" :
-            paso > 0 ? `Paso ${paso}` :
-            ""
-          }
-        </Titulo>
-        {/* IMAGEN */}
-        <View
-          className="flex-1 w-full items-center justify-center"
-          style={{
-            height: 160,
-          }}
-        >
-          {paso == 0 ? (
-            <Image
-              source={images.CEO}
-              style={{
-                width: Platform.OS === "web" ? 40 : 160,
-                height: Platform.OS === "web" ? 40 : 160,
-              }}
-              resizeMode={"contain"}
-            />
-          ) : paso == 1 ? (
-            <BotonAgregarTutorial/>
-          ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
-              <PacienteItem
-                paciente={{
-                  id: "1",
-                  nombre: "Santiago González",
-                  cuidador: "María González",
-                }}
-                isProfesional={rol === "profesional"}
-              />
-            </View>
-          ) : null}
-        </View>
-        {/* TEXTO */}
-        <View className="flex-column gap-1">
-          {paso == 0 ? (
-            <>
-              <TextoTutorial>
-                ¡Bienvenid@ a CEApp!</TextoTutorial>
-              <TextoTutorial>
-                En esta pantalla podrás seleccionar un paciente o crear uno nuevo para comenzar a usar la aplicación.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "cuidador" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "profesional" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 2 ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : null}
-        </View>
-      </View>
-      {/* FOOTER */}
-      <FooterTutorial
-        paso={paso}
-        setPaso={setPaso}
-        pasosTotales={pasosTotales}
-        onClose={onClose}
-      />
-    </View>
-  );
-}
-
-//TUTORIAL: MEDICAMENTOS
-interface TutorialMedicamentosProps {
-  onClose: () => void;
-  rol: string;
-}
-export function TutorialMedicamentos({
-  onClose,
-  rol,
-}: TutorialMedicamentosProps) {
-  const [paso, setPaso] = useState(0);
-  const pasosTotales = 3;
-  return (
-    <View className="flex-1 px-4 py-6">
-      <View className="flex-1 items-center justify-start gap-4" pointerEvents="none">
-        {/* TÍTULO */}
-        <Titulo
-          subtitulo={
-            paso == 1 ? "Agregar un paciente" :
-            paso == 2 ? "Seleccionar un paciente" :
-            undefined
-          }
-          subtituloTamano={"base"}
-        >
-          {
-            paso == 0 ? "Medicamentos" :
-            paso > 0 ? `Paso ${paso}` :
-            ""
-          }
-        </Titulo>
-        {/* IMAGEN */}
-        <View
-          className="flex-1 w-full items-center justify-center"
-          style={{
-            height: 160,
-          }}
-        >
-          {paso == 0 ? (
-            <Image
-              source={images.CEO}
-              style={{
-                width: Platform.OS === "web" ? 40 : 160,
-                height: Platform.OS === "web" ? 40 : 160,
-              }}
-              resizeMode={"contain"}
-            />
-          ) : paso == 1 ? (
-            <BotonAgregarTutorial/>
-          ) : paso == 2 ? (
-            <View className="w-full" style={{ height: 100 }}>
-              <PacienteItem
-                paciente={{
-                  id: "1",
-                  nombre: "Santiago González",
-                  cuidador: "María González",
-                }}
-                isProfesional={rol === "profesional"}
-              />
-            </View>
-          ) : null}
-        </View>
-        {/* TEXTO */}
-        <View className="flex-column gap-1">
-          {paso == 0 ? (
-            <>
-              <TextoTutorial>
-                ¡Bienvenid@ a CEApp!</TextoTutorial>
-              <TextoTutorial>
-                En esta pantalla podrás seleccionar un paciente o crear uno nuevo para comenzar a usar la aplicación.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "cuidador" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 1 && rol == "profesional" ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : paso == 2 ? (
-            <>
-              <TextoTutorial>
-                • Pulsa el botón <Text className="font-bold">+</Text> en la esquina inferior derecha.
-              </TextoTutorial>
-            </>
-          ) : null}
-        </View>
-      </View>
-      {/* FOOTER */}
-      <FooterTutorial
-        paso={paso}
-        setPaso={setPaso}
-        pasosTotales={pasosTotales}
-        onClose={onClose}
-      />
     </View>
   );
 }
