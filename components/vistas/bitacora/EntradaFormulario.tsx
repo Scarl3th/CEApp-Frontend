@@ -215,7 +215,7 @@ export function EntradaFormulario() {
         try {
           const payload = 
           {
-            "elemento": "bitacora",
+            "elemento": "entrada de bitacora",
             "accion": "crear",
             "nombre_elemento": titulo,
           }

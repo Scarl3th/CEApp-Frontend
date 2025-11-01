@@ -11,6 +11,7 @@ import { TarjetaOpcion } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaString } from "@/components/base/FormatearFecha";
+import { useLocalSearchParams } from "expo-router";
 
 //ACTUALIZACIÓN
 interface Actualizacion {
@@ -66,6 +67,7 @@ const ActualizacionItem = ({
   const ruta_partes = ruta.split("/").filter(Boolean);
   const rol = ruta_partes[0];
   const paciente = ruta_partes[1];
+
 
   //HANDLE: ELIMINAR
   const handleEliminar = () => {
@@ -195,6 +197,11 @@ export function Actualizaciones() {
   const [error, setError] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [toast, setToast] = useState<{ text1: string; text2?: string; type: "success" | "error" } | null>(null);
+  const { paciente, recargar, success } = useLocalSearchParams();
+  const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
+  const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
+
+
 
   useEffect(() => {
     fetchActualizaciones();
@@ -207,7 +214,7 @@ export function Actualizaciones() {
     try {
       const api = createApi(authToken, refreshToken, setAuthToken);
       console.log("[actualizaciones] Obteniendo actualizaciones de la base de datos...");
-      const res = await api.get("/actualizaciones/");
+      const res = await api.get(`/actualizaciones/${pacienteID}`);
       const actualizacionesFechas: Actualizacion[] = res.data.map((obs: any) => ({
         ...obs,
         fecha_creacion: new Date(obs.fecha_creacion),

@@ -9,7 +9,7 @@ import { TarjetaOpcion } from "@/components/base/Tarjeta";
 import { MensajeVacio } from "@/components/base/MensajeVacio";
 import { IndicadorCarga } from "@/components/base/IndicadorCarga";
 import { formatearFechaString } from "@/components/base/FormatearFecha";
-import { useLocalSearchParams} from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
 // INTERFACE PARA LOG
 interface Log {
@@ -19,6 +19,7 @@ interface Log {
   accion: string;
   profesional: string;
   fecha_evento: Date;
+  plan_trabajo_nombre?: string;
 }
 
 // ICONO DE LOG
@@ -30,7 +31,6 @@ const LogIcon = ({ elemento, accion }: LogIconProps) => {
   let iconName: keyof typeof Ionicons.glyphMap = "information-circle";
   let iconColor = colors.mediumgrey;
 
-  // Iconos según el tipo de log
   switch (accion) {
     case "crear":
     case "iniciar":
@@ -58,9 +58,70 @@ const LogIcon = ({ elemento, accion }: LogIconProps) => {
 interface LogItemProps {
   log: Log;
 }
+
 const LogItem = ({ log }: LogItemProps) => {
-  // Texto descriptivo
-  const descripcion = `${log.profesional} ${log.accion} ${log.elemento}${log.nombre_elemento ? ` "${log.nombre_elemento}"` : ""}.`;
+  // Conjugaciones por acción
+  const acciones: Record<string, string> = {
+    subir: "subió",
+    visualizar: "visualizó",
+    descargar: "descargó",
+    acceder: "accedió a",
+    crear: "creó",
+    iniciar: "inició",
+    editar: "editó",
+    eliminar: "eliminó",
+    cerrar: "cerró",
+  };
+
+  const accionTexto = acciones[log.accion] || log.accion;
+
+  // Frases según elemento
+  let descripcion = "";
+
+  switch (log.elemento) {
+    case "datos del paciente":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} los datos del paciente.`;
+      break;
+
+    case "informe":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} el informe${log.nombre_elemento ? ` "${log.nombre_elemento}"` : ""}.`;
+      break;
+
+    case "bitacora":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} la bitácora.`;
+      break;
+
+    case "entrada de bitacora":
+      descripcion = `Profesional ${log.profesional} creó una entrada en la bitácora${log.nombre_elemento ? ` "${log.nombre_elemento}"` : ""}.`;
+      break;
+
+    case "sesion":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} sesión.`;
+      break;
+
+    case "medicamento":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} los medicamentos.`;
+      break;
+
+    case "plan de trabajo":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} el plan de trabajo.`;
+      break;
+
+    case "objetivo general":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} el objetivo general${log.nombre_elemento ? ` "${log.nombre_elemento}"` : ""}.`;
+      break;
+
+    case "objetivo especifico":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} el objetivo específico${log.nombre_elemento ? ` "${log.nombre_elemento}"` : ""}.`;
+      break;
+
+    case "progreso":
+      descripcion = `Profesional ${log.profesional} ${accionTexto} la sección de progreso.`;
+      break;
+
+    default:
+      descripcion = `Profesional ${log.profesional} ha realizado la acción "${log.accion}" sobre "${log.elemento}".`;
+  }
 
   return (
     <TarjetaOpcion
@@ -84,16 +145,14 @@ const LogItem = ({ log }: LogItemProps) => {
 interface LogsListaProps {
   logs: Log[];
 }
-const LogsLista = ({ logs }: LogsListaProps) => {
-  return (
-    <FlatList
-      data={logs}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <LogItem log={item} />}
-      contentContainerStyle={{ paddingBottom: 55 }}
-    />
-  );
-};
+const LogsLista = ({ logs }: LogsListaProps) => (
+  <FlatList
+    data={logs}
+    keyExtractor={(item) => item.id}
+    renderItem={({ item }) => <LogItem log={item} />}
+    contentContainerStyle={{ paddingBottom: 55 }}
+  />
+);
 
 // VISTA PRINCIPAL
 export function Accesos() {
@@ -107,23 +166,20 @@ export function Accesos() {
     type: "success" | "error";
   } | null>(null);
 
-  //Buscamos parámetros locales para conseguir el id del plan (pacienteID)
-  const { paciente, recargar, success } = useLocalSearchParams();
+  const { paciente } = useLocalSearchParams();
   const pacienteString = Array.isArray(paciente) ? paciente[0] : paciente;
-  const [pacienteID, pacienteEncodedNombre] = pacienteString?.split("-") ?? [null, null];
-
+  const [pacienteID] = pacienteString?.split("-") ?? [null, null];
 
   useEffect(() => {
     fetchLogs();
   }, [authToken, refreshToken]);
 
-  // FETCH LOGS
   const fetchLogs = async () => {
     if (!authToken || !refreshToken) return;
     setIsLoading(true);
     try {
       const api = createApi(authToken, refreshToken, setAuthToken);
-      const res = await api.get(`/logs/${pacienteID}/`); //Realizamos la llamada
+      const res = await api.get(`/logs/${pacienteID}/`);
       const logsData: Log[] = res.data.map((l: any) => ({
         ...l,
         fecha_evento: new Date(l.fecha_evento),
@@ -140,10 +196,8 @@ export function Accesos() {
 
   return (
     <View className="flex-1">
-      {/* TÍTULO */}
       <Titulo onPressRecargar={fetchLogs}>Logs</Titulo>
 
-      {/* CUERPO */}
       {isLoading ? (
         <IndicadorCarga />
       ) : error ? (
@@ -157,7 +211,6 @@ export function Accesos() {
         <LogsLista logs={logs} />
       )}
 
-      {/* TOAST */}
       {toast && (
         <CustomToast
           text1={toast.text1}

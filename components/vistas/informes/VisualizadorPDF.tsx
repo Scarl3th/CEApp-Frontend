@@ -131,6 +131,7 @@ export function VisualizadorPDF(){
           console.error("[LOGs] Error creando log de descargar informe");
         }
       }
+      
       setUrl(res.data.url);
   } catch (error: any) {
       console.error("Error:", error.response?.data?.message || error.message);
